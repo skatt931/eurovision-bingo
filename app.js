@@ -1,4 +1,11 @@
 // ============================================================
+//  FEATURE FLAGS
+// ============================================================
+// Тимчасово приховуємо набір "🎨 Свої" та URL-імпорт.
+// Код залишається у файлі — щоб увімкнути, постав true.
+const FEATURE_CUSTOM_EVENTS = false;
+
+// ============================================================
 //  CARD PACKS
 // ============================================================
 const PACKS = [
@@ -11,7 +18,7 @@ const PACKS = [
       { e: "🎸", t: "Електрогітара" },
       { e: "😬", t: "Технічна проблема або незручна пауза" },
       { e: "🎙️", t: "Пісня починається a cappella" },
-      { e: "🎭", t: "Театральний грим" },
+      { e: "🎭", t: "Несподіваний спів друга" },
       { e: "🌈", t: "Прапор ЛГБТК+" },
       { e: "👑", t: "Корона/діадема" },
       { e: "🥸", t: "Вусатий робить щось дивне" },
@@ -54,7 +61,7 @@ const PACKS = [
       { e: "📵", t: "Обрив трансляції" },
       { e: "🎙️", t: "Мікрофон не працює" },
       { e: "😤", t: "Скандал у журі" },
-      { e: "💩", t: "Русня" },
+      { e: "💩", t: "Московит" },
       { e: "🫥", t: "Учасник зник зі сцени" },
       { e: "⌛", t: "Виступ перервали" },
       { e: "🎶", t: "Не потрапив у такт музики" },
@@ -125,10 +132,21 @@ const PACKS = [
 ];
 
 // ============================================================
+//  HARD MODE — пул «хардкорних» центральних подій
+// ============================================================
+const HARD_CENTERS = [
+  { e: "🏆", t: "Україна в топ-5" },
+  { e: "⚡", t: "Виступ запам'ятається роками" },
+  { e: "🎯", t: "Угадай переможця вечора" },
+  { e: "⚖️", t: "Журі і глядачі різко не згодні" },
+  { e: "🔥", t: "Соцмережі вибухають" },
+  { e: "🌍", t: "Скандал між країнами" },
+];
+
+// ============================================================
 //  STATE
 // ============================================================
-const FREE_CELL = 12; // index 12 = center (FREE)
-// seed = null тут, реальне значення буде або з кукісів, або новий Math.random() в init()
+const FREE_CELL = 12; // index 12 = center
 let state = {
   pack: 0,
   playerName: "",
@@ -137,7 +155,22 @@ let state = {
   seed: null,
   wonLines: [],
   hasBingo: false,
+  hardMode: false,
 };
+
+function hasFree() {
+  return !state.hardMode;
+}
+function cardLen() {
+  return state.hardMode ? 25 : 24;
+}
+// Мапа клітинки на індекс в state.cardItems.
+// Нормальний режим: пропускаємо центр (FREE), тож після центру зсув -1.
+// Хард-режим: 1-в-1 (центр теж зі своїм елементом).
+function cellItemIndex(i) {
+  if (state.hardMode) return i;
+  return i < FREE_CELL ? i : i - 1;
+}
 
 function saveState() {
   try {
@@ -148,6 +181,7 @@ function saveState() {
       checked: state.checked,
       wonLines: state.wonLines,
       hasBingo: state.hasBingo,
+      hardMode: state.hardMode,
     };
     localStorage.setItem("escBingo2026", JSON.stringify(d));
   } catch (e) {
@@ -162,10 +196,13 @@ function loadState() {
     const d = JSON.parse(raw);
     if (!d || d.seed === null || d.seed === undefined) return false;
     Object.assign(state, d);
+    state.hardMode = !!state.hardMode;
+    // Захист від збереженого pack-індексу, якого більше немає (наприклад, custom при вимкнутій фічі)
+    if (!PACKS[state.pack]) state.pack = 0;
     state.checked = (state.checked || []).map(Number);
     state.wonLines = (state.wonLines || []).map((line) => line.map(Number));
     state.cardItems = generateCard(state.pack, state.seed);
-    return state.cardItems.length === 24;
+    return state.cardItems.length === cardLen();
   } catch (e) {
     return false;
   }
@@ -197,9 +234,18 @@ function shuffleWithSeed(arr, seed) {
 }
 
 function generateCard(packIdx, seed) {
-  const items = [...PACKS[packIdx].items];
-  const shuffled = shuffleWithSeed(items, seed);
-  return shuffled.slice(0, 24);
+  const pack = PACKS[packIdx];
+  if (!pack || !Array.isArray(pack.items) || pack.items.length < 24) return [];
+  const shuffled = shuffleWithSeed([...pack.items], seed);
+  const base = shuffled.slice(0, 24);
+  if (state.hardMode) {
+    // Детерміністично з seed обираємо хард-центр і вставляємо в позицію 12
+    const centerIdx =
+      Math.floor(seed * HARD_CENTERS.length) % HARD_CENTERS.length;
+    base.splice(12, 0, HARD_CENTERS[centerIdx]);
+    return base; // 25 елементів
+  }
+  return base; // 24 елементи
 }
 
 // ============================================================
@@ -222,7 +268,10 @@ function checkWin(checked) {
   const lines = getLines();
   const newWinLines = [];
   for (const line of lines) {
-    if (line.every((i) => checked.includes(i) || i === FREE_CELL)) {
+    // У хард-моді FREE-бонус не діє — кожна клітинка має бути відмічена
+    if (
+      line.every((i) => checked.includes(i) || (hasFree() && i === FREE_CELL))
+    ) {
       newWinLines.push(line);
     }
   }
@@ -241,27 +290,30 @@ function renderCard() {
     cell.className = "bingo-cell";
     cell.dataset.idx = i;
 
-    if (i === FREE_CELL) {
+    const isFree = hasFree() && i === FREE_CELL;
+    if (isFree) {
       cell.classList.add("free", "checked");
       cell.innerHTML =
         '<span class="cell-emoji">⭐</span><span class="cell-text">FREE</span>';
     } else {
-      const itemIdx = i < FREE_CELL ? i : i - 1;
+      const itemIdx = cellItemIndex(i);
       const item = state.cardItems[itemIdx];
       if (item) {
         cell.innerHTML = `<span class="cell-emoji">${item.e}</span><span class="cell-text">${item.t}</span>`;
+      }
+      // У хард-моді центр позначаємо рамкою з акцентом
+      if (state.hardMode && i === FREE_CELL) {
+        cell.classList.add("hard-center");
       }
       if (state.checked.includes(i)) {
         cell.classList.add("checked");
       }
     }
 
-    // Mark winning lines
     if (state.wonLines.some((line) => line.includes(i))) {
       cell.classList.add("line-win");
     }
-
-    if (i !== FREE_CELL) {
+    if (!isFree) {
       cell.addEventListener("click", () => toggleCell(i));
     }
 
@@ -314,10 +366,14 @@ window.addEventListener("resize", () => {
 });
 
 function updateStats() {
-  const checked = state.checked.filter((i) => i !== FREE_CELL).length;
+  // У нормальному режимі FREE не рахуємо як «відмічене»; у хард-режимі — рахуємо
+  const checked = hasFree()
+    ? state.checked.filter((i) => i !== FREE_CELL).length
+    : state.checked.length;
+  const total = state.hardMode ? 25 : 24;
   document.getElementById("statChecked").textContent = checked;
   document.getElementById("statLines").textContent = state.wonLines.length;
-  document.getElementById("statLeft").textContent = 24 - checked;
+  document.getElementById("statLeft").textContent = total - checked;
   const name = state.playerName || "Гравець";
   document.getElementById("playerTag").textContent = "👤 " + name;
 }
@@ -337,8 +393,16 @@ function renderPacks() {
     btn.className = "pack-btn" + (i === state.pack ? " active" : "");
     btn.textContent = p.name;
     btn.onclick = () => {
+      const isCustomInsufficient =
+        p.id === CUSTOM_PACK_ID && (!p.items || p.items.length < 24);
+      if (isCustomInsufficient) {
+        // Запам'ятовуємо намір перемкнутись — щоб після закриття редактора авто-перейти
+        pendingPackSwitch = i;
+        openCustomEditor();
+        return;
+      }
       state.pack = i;
-      state.checked = [FREE_CELL];
+      state.checked = hasFree() ? [FREE_CELL] : [];
       state.wonLines = [];
       state.hasBingo = false;
       state.seed = Math.random();
@@ -349,13 +413,21 @@ function renderPacks() {
     };
     wrap.appendChild(btn);
   });
+  updateCustomEditRow();
+}
+
+function updateCustomEditRow() {
+  const row = document.getElementById("customEditRow");
+  if (!row) return;
+  const isCustomActive = PACKS[state.pack]?.id === CUSTOM_PACK_ID;
+  row.hidden = !isCustomActive;
 }
 
 // ============================================================
 //  INTERACTIONS
 // ============================================================
 function toggleCell(idx) {
-  if (idx === FREE_CELL) return;
+  if (hasFree() && idx === FREE_CELL) return;
   const wasChecked = state.checked.includes(idx);
 
   if (wasChecked) {
@@ -451,7 +523,11 @@ function spawnSparkles(e) {
 function newCard() {
   state.seed = Math.random();
   state.cardItems = generateCard(state.pack, state.seed);
-  state.checked = [FREE_CELL];
+  if (!state.cardItems.length) {
+    alert("У цьому наборі замало подій (потрібно мінімум 24). Додай через ✏️.");
+    return;
+  }
+  state.checked = hasFree() ? [FREE_CELL] : [];
   state.wonLines = [];
   state.hasBingo = false;
   saveState();
@@ -812,27 +888,464 @@ function hideInstallHelp(e) {
 }
 
 // ============================================================
+//  COOKIE CONSENT (GDPR)
+// ============================================================
+const COOKIE_CONSENT_KEY = "escCookieConsent";
+
+function checkCookieConsent() {
+  let stored = null;
+  try {
+    stored = localStorage.getItem(COOKIE_CONSENT_KEY);
+  } catch (e) {
+    /* ignore */
+  }
+  if (stored === "accepted") {
+    enableAnalytics();
+    return;
+  }
+  if (stored === "rejected") {
+    return; // GA лишається у denied стані
+  }
+  // Перший візит — показуємо банер з невеликою затримкою (не одразу при завантаженні)
+  setTimeout(() => {
+    const b = document.getElementById("cookieBanner");
+    if (b) b.classList.add("show");
+  }, 1500);
+}
+
+function enableAnalytics() {
+  if (typeof gtag !== "function") return;
+  gtag("consent", "update", {
+    analytics_storage: "granted",
+  });
+}
+
+function acceptCookies() {
+  try {
+    localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
+  } catch (e) {
+    /* ignore */
+  }
+  enableAnalytics();
+  const b = document.getElementById("cookieBanner");
+  if (b) b.classList.remove("show");
+}
+
+function rejectCookies() {
+  try {
+    localStorage.setItem(COOKIE_CONSENT_KEY, "rejected");
+  } catch (e) {
+    /* ignore */
+  }
+  const b = document.getElementById("cookieBanner");
+  if (b) b.classList.remove("show");
+}
+
+// ============================================================
+//  HARD MODE — toggle
+// ============================================================
+function toggleHardMode() {
+  state.hardMode = !state.hardMode;
+  // Регенеруємо картку з новим режимом
+  state.seed = Math.random();
+  state.cardItems = generateCard(state.pack, state.seed);
+  if (!state.cardItems.length) {
+    state.hardMode = !state.hardMode; // revert
+    alert("У цьому наборі замало подій (потрібно мінімум 24).");
+    return;
+  }
+  state.checked = hasFree() ? [FREE_CELL] : [];
+  state.wonLines = [];
+  state.hasBingo = false;
+  saveState();
+  updateHardToggleUI();
+  renderCard();
+}
+
+function updateHardToggleUI() {
+  const btn = document.getElementById("hardToggle");
+  if (btn) btn.classList.toggle("active", state.hardMode);
+}
+
+// ============================================================
+//  CUSTOM EVENTS — свій набір (зберігається в localStorage)
+// ============================================================
+const CUSTOM_PACK_ID = "custom";
+const CUSTOM_STORAGE_KEY = "escBingoCustomEvents";
+// Якщо користувач відкрив редактор клікнувши на "Свої" з малою к-стю подій —
+// після закриття редактора (з достатньою к-стю) авто-переключаємось.
+let pendingPackSwitch = null;
+
+function loadCustomEvents() {
+  if (!FEATURE_CUSTOM_EVENTS) return; // фіча приховується — не додаємо набір
+  let items = [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) items = parsed.filter((x) => x?.e && x?.t);
+    }
+  } catch (e) {
+    console.warn("load custom failed", e);
+  }
+  // Додаємо/оновлюємо набір у PACKS
+  const existing = PACKS.findIndex((p) => p.id === CUSTOM_PACK_ID);
+  const pack = { id: CUSTOM_PACK_ID, name: "🎨 Свої", items };
+  if (existing >= 0) PACKS[existing] = pack;
+  else PACKS.push(pack);
+}
+
+function saveCustomEvents() {
+  const pack = PACKS.find((p) => p.id === CUSTOM_PACK_ID);
+  if (!pack) return;
+  try {
+    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(pack.items));
+  } catch (e) {
+    console.warn("save custom failed", e);
+  }
+}
+
+function openCustomEditor() {
+  const o = document.getElementById("customOverlay");
+  if (!o) return;
+  renderCustomList();
+  o.classList.add("show");
+}
+
+function hideCustomEditor(e) {
+  if (e?.target?.id && e.target.id !== "customOverlay") return;
+  const o = document.getElementById("customOverlay");
+  if (o) o.classList.remove("show");
+
+  const customPack = PACKS.find((p) => p.id === CUSTOM_PACK_ID);
+  const enoughEvents = customPack?.items?.length >= 24;
+
+  // Якщо чекаємо на перемикання (юзер тицьнув "Свої" коли був порожній)
+  // і тепер є ≥24 подій — авто-переключаємось.
+  if (pendingPackSwitch !== null && enoughEvents) {
+    state.pack = pendingPackSwitch;
+    state.seed = Math.random();
+    state.cardItems = generateCard(state.pack, state.seed);
+    state.checked = hasFree() ? [FREE_CELL] : [];
+    state.wonLines = [];
+    state.hasBingo = false;
+    saveState();
+    renderPacks();
+    renderCard();
+    pendingPackSwitch = null;
+    return;
+  }
+  pendingPackSwitch = null;
+
+  // Якщо зараз активний «Свої» — спробувати перегенерувати картку
+  if (PACKS[state.pack]?.id === CUSTOM_PACK_ID && enoughEvents) {
+    state.seed = Math.random();
+    state.cardItems = generateCard(state.pack, state.seed);
+    state.checked = hasFree() ? [FREE_CELL] : [];
+    state.wonLines = [];
+    state.hasBingo = false;
+    saveState();
+    renderCard();
+  }
+  renderPacks();
+}
+
+function renderCustomList() {
+  const pack = PACKS.find((p) => p.id === CUSTOM_PACK_ID);
+  const list = document.getElementById("customList");
+  const counter = document.getElementById("customCounter");
+  if (!list || !pack) return;
+  list.innerHTML = "";
+  pack.items.forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "custom-item";
+    row.innerHTML = `
+      <span class="custom-item-emoji">${item.e}</span>
+      <span class="custom-item-text">${item.t}</span>
+      <button class="custom-item-del" data-idx="${idx}" aria-label="Видалити">🗑</button>
+    `;
+    row.querySelector(".custom-item-del").addEventListener("click", () => {
+      pack.items.splice(idx, 1);
+      saveCustomEvents();
+      renderCustomList();
+    });
+    list.appendChild(row);
+  });
+  const n = pack.items.length;
+  counter.textContent =
+    n >= 24 ? `${n} подій ✅` : `${n}/24 — додай ще ${24 - n}`;
+  counter.classList.toggle("ok", n >= 24);
+}
+
+// ============================================================
+//  CUSTOM EVENTS — share / import via URL (з gzip-стисненням)
+// ============================================================
+
+// === bytes ↔ URL-safe base64 (з відновленням padding на decode) ===
+function bytesToB64Url(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+function b64UrlToBytes(b64) {
+  let fixed = b64.replace(/-/g, "+").replace(/_/g, "/");
+  while (fixed.length % 4) fixed += "="; // ← повертаємо padding
+  const bin = atob(fixed);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// === gzip compress/decompress (з фолбеком на plain коли API недоступне) ===
+async function gzipCompress(str) {
+  if (typeof CompressionStream === "undefined") return null;
+  const cs = new CompressionStream("gzip");
+  const writer = cs.writable.getWriter();
+  writer.write(new TextEncoder().encode(str));
+  writer.close();
+  const buf = await new Response(cs.readable).arrayBuffer();
+  return new Uint8Array(buf);
+}
+async function gzipDecompress(bytes) {
+  const ds = new DecompressionStream("gzip");
+  const writer = ds.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  const buf = await new Response(ds.readable).arrayBuffer();
+  return new TextDecoder().decode(buf);
+}
+
+// === legacy plain base64 (для зворотної сумісності зі старими URL) ===
+function b64encodeUnicode(str) {
+  return btoa(
+    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p) =>
+      String.fromCharCode("0x" + p),
+    ),
+  )
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+function b64decodeUnicode(b64) {
+  let fixed = b64.replace(/-/g, "+").replace(/_/g, "/");
+  while (fixed.length % 4) fixed += "="; // ← fix: відновлюємо padding
+  return decodeURIComponent(
+    Array.prototype.map
+      .call(
+        atob(fixed),
+        (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2),
+      )
+      .join(""),
+  );
+}
+
+// === encode / decode payload із префіксом версії ===
+//  c1.<base64>  — gzip-стиснутий JSON (новий формат, ~50% коротше)
+//  <base64>     — звичайний base64 JSON (старий, fallback)
+async function encodePayload(payload) {
+  const json = JSON.stringify(payload);
+  const compressed = await gzipCompress(json);
+  if (compressed) return "c1." + bytesToB64Url(compressed);
+  return b64encodeUnicode(json); // фолбек: без префіксу = легасі
+}
+async function decodePayload(encoded) {
+  if (encoded.startsWith("c1.")) {
+    const bytes = b64UrlToBytes(encoded.slice(3));
+    return JSON.parse(await gzipDecompress(bytes));
+  }
+  return JSON.parse(b64decodeUnicode(encoded));
+}
+
+async function shareCustomSet() {
+  const pack = PACKS.find((p) => p.id === CUSTOM_PACK_ID);
+  if (!pack || !pack.items.length) return;
+
+  const name = prompt(
+    "Як назвати твій набір? (Друг побачить цю назву)",
+    "Мій набір",
+  );
+  if (name === null) return;
+
+  const payload = {
+    v: 1,
+    name: (name || "Без назви").slice(0, 40),
+    items: pack.items.map((i) => ({ e: i.e, t: i.t })),
+  };
+  const encoded = await encodePayload(payload);
+  const url = `${location.origin}${location.pathname}?import=${encoded}`;
+
+  console.log(
+    `Share URL length: ${url.length} chars (encoded payload: ${encoded.length})`,
+  );
+
+  const text =
+    `🎤 Eurovision Bingo — мій набір "${payload.name}"\n` +
+    `${payload.items.length} подій 🎯\n` +
+    `Тицьни щоб імпортувати: ${url}`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "Мій набір Eurovision Bingo", text, url });
+      return;
+    } catch (e) {
+      /* користувач скасував — продовжуємо до fallback */
+    }
+  }
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(url);
+      alert(
+        `Посилання скопійовано! 📋\n\n${payload.items.length} подій · ${url.length} символів\n\nНадішли його другу.`,
+      );
+      return;
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  prompt("Скопіюй посилання:", url);
+}
+
+// При завантаженні сторінки — перевіряємо URL на ?import=
+async function checkImportFromURL() {
+  if (!FEATURE_CUSTOM_EVENTS) return; // фіча прихована — імпорт теж
+  const params = new URLSearchParams(location.search);
+  const encoded = params.get("import");
+  if (!encoded) return;
+  try {
+    const payload = await decodePayload(encoded);
+    if (!payload || !Array.isArray(payload.items)) throw new Error("bad");
+    const items = payload.items
+      .filter((x) => x?.e && x?.t)
+      .map((x) => ({ e: String(x.e), t: String(x.t).slice(0, 60) }));
+    if (!items.length) throw new Error("empty");
+    showImportDialog({ name: payload.name || "Без назви", items });
+  } catch (e) {
+    console.warn("import parse failed", e);
+    alert(
+      "Не вдалося розпакувати набір 😕\nМожливо, посилання обрізалось при пересилці. Попроси друга надіслати ще раз.",
+    );
+  }
+  // Очищуємо URL, щоб refresh не повторював імпорт
+  history.replaceState({}, "", location.pathname);
+}
+
+let _importPayload = null;
+
+function showImportDialog(payload) {
+  _importPayload = payload;
+  const o = document.getElementById("importOverlay");
+  if (!o) return;
+  document.getElementById("importTitle").textContent = `«${payload.name}»`;
+  document.getElementById("importCount").textContent =
+    `${payload.items.length} подій`;
+  const preview = document.getElementById("importPreview");
+  preview.innerHTML = "";
+  payload.items.slice(0, 8).forEach((it) => {
+    const row = document.createElement("div");
+    row.className = "custom-item";
+    row.innerHTML = `<span class="custom-item-emoji">${it.e}</span><span class="custom-item-text">${it.t}</span>`;
+    preview.appendChild(row);
+  });
+  if (payload.items.length > 8) {
+    const more = document.createElement("div");
+    more.className = "import-more";
+    more.textContent = `…ще ${payload.items.length - 8} подій`;
+    preview.appendChild(more);
+  }
+  o.classList.add("show");
+}
+
+function hideImportDialog(e) {
+  if (e?.target?.id && e.target.id !== "importOverlay") return;
+  const o = document.getElementById("importOverlay");
+  if (o) o.classList.remove("show");
+  _importPayload = null;
+}
+
+function importApply(mode) {
+  if (!_importPayload) return;
+  const pack = PACKS.find((p) => p.id === CUSTOM_PACK_ID);
+  if (!pack) return;
+  if (mode === "replace") {
+    pack.items = [..._importPayload.items];
+  } else {
+    // merge — пропускаємо точні дублікати (e+t)
+    const seen = new Set(pack.items.map((i) => i.e + "|" + i.t));
+    _importPayload.items.forEach((i) => {
+      const key = i.e + "|" + i.t;
+      if (!seen.has(key)) {
+        pack.items.push(i);
+        seen.add(key);
+      }
+    });
+  }
+  saveCustomEvents();
+  hideImportDialog();
+  // Перемикаємось на "Свої" і генеруємо нову картку (якщо подій ≥24)
+  if (pack.items.length >= 24) {
+    const customIdx = PACKS.findIndex((p) => p.id === CUSTOM_PACK_ID);
+    state.pack = customIdx;
+    state.seed = Math.random();
+    state.cardItems = generateCard(customIdx, state.seed);
+    state.checked = hasFree() ? [FREE_CELL] : [];
+    state.wonLines = [];
+    state.hasBingo = false;
+    saveState();
+    renderPacks();
+    renderCard();
+  } else {
+    renderPacks();
+  }
+}
+
+function addCustomEvent() {
+  const eInput = document.getElementById("customEmojiInput");
+  const tInput = document.getElementById("customTextInput");
+  if (!eInput || !tInput) return;
+  const e = (eInput.value || "").trim();
+  const t = (tInput.value || "").trim();
+  if (!e || !t) {
+    eInput.focus();
+    return;
+  }
+  const pack = PACKS.find((p) => p.id === CUSTOM_PACK_ID);
+  if (!pack) return;
+  pack.items.push({ e, t: t.slice(0, 40) });
+  saveCustomEvents();
+  eInput.value = "";
+  tInput.value = "";
+  eInput.focus();
+  renderCustomList();
+}
+
+// ============================================================
 //  INIT
 // ============================================================
 function init() {
+  loadCustomEvents(); // має йти першим — заповнює PACKS додатковим набором
   const loaded = loadState();
+  // Якщо URL містить ?import=... — покажемо діалог імпорту після ініціалізації
+  setTimeout(checkImportFromURL, 300);
 
-  if (loaded && state.cardItems && state.cardItems.length === 24) {
+  if (loaded && state.cardItems?.length === cardLen()) {
     // Відновлюємо з кукісів — картку НЕ перегенеруємо
-    // Гарантуємо що FREE_CELL завжди відмічено
-    if (!state.checked.includes(FREE_CELL)) {
+    if (hasFree() && !state.checked.includes(FREE_CELL)) {
       state.checked.push(FREE_CELL);
     }
   } else {
     // Перший запуск або пошкоджений стан — генеруємо нову картку
     state.seed = Math.random();
     state.cardItems = generateCard(state.pack, state.seed);
-    state.checked = [FREE_CELL];
+    state.checked = hasFree() ? [FREE_CELL] : [];
     state.wonLines = [];
     state.hasBingo = false;
     saveState();
   }
 
+  updateHardToggleUI();
   renderPacks();
   renderCard();
 
@@ -852,6 +1365,7 @@ function init() {
   });
 
   initRotateHint();
+  checkCookieConsent();
 }
 
 init();

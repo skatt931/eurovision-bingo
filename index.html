@@ -19,6 +19,28 @@
     />
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" href="icon-192.png" />
+
+    <!-- Google Analytics (GA4) з Consent Mode v2 -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-YVQWF1XXP8"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      // GDPR: за замовчуванням блокуємо. Розблоковується після згоди.
+      gtag("consent", "default", {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+      });
+      gtag("js", new Date());
+      gtag("config", "G-YVQWF1XXP8");
+    </script>
+
     <title>🎤 Eurovision Bingo 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -89,6 +111,36 @@
       <div class="section-label">Набір карток</div>
       <div class="packs-wrap">
         <div class="packs" id="packSelector"></div>
+      </div>
+
+      <!-- Контекстна дія: з'являється тільки коли активний "🎨 Свої" -->
+      <div class="custom-edit-row" id="customEditRow" hidden>
+        <button class="custom-edit-btn-inline" onclick="openCustomEditor()">
+          <span class="custom-edit-icon">✏️</span>
+          <span class="custom-edit-text">Редагувати свої події</span>
+        </button>
+      </div>
+
+      <!-- GAME SETTINGS -->
+      <div class="section-label">⚙️ Налаштування гри</div>
+      <div
+        class="settings-card"
+        onclick="toggleHardMode()"
+        role="button"
+        tabindex="0"
+      >
+        <div class="settings-icon">💀</div>
+        <div class="settings-info">
+          <div class="settings-title">Хард режим</div>
+          <div class="settings-desc">
+            Без FREE у центрі — збирай 5 у ряд по-чесному
+          </div>
+        </div>
+        <div
+          class="toggle-switch"
+          id="hardToggle"
+          aria-label="Хард режим"
+        ></div>
       </div>
 
       <!-- PLAYER -->
@@ -218,6 +270,123 @@
 
     <!-- BINGO shout -->
     <div class="bingo-shout" id="bingoShout">BINGO!</div>
+
+    <!-- COOKIE CONSENT BANNER -->
+    <div
+      class="cookie-banner"
+      id="cookieBanner"
+      role="dialog"
+      aria-live="polite"
+    >
+      <div class="cookie-text">
+        🍪 Погодитись з використанням <b>cookies</b>?
+      </div>
+      <div class="cookie-actions">
+        <button class="btn btn-secondary" onclick="rejectCookies()">
+          Тільки необхідні
+        </button>
+        <button class="btn btn-primary" onclick="acceptCookies()">
+          🍪 Згоден
+        </button>
+      </div>
+    </div>
+
+    <!-- CUSTOM EVENTS EDITOR -->
+    <div
+      class="rules-overlay"
+      id="customOverlay"
+      onclick="hideCustomEditor(event)"
+    >
+      <div class="rules-box" onclick="event.stopPropagation()">
+        <button
+          class="rules-close"
+          onclick="hideCustomEditor()"
+          aria-label="Закрити"
+        >
+          ✕
+        </button>
+        <div class="rules-title">🎨 Свої події</div>
+
+        <p class="install-lead">
+          Додай свої події для бінго. Мінімум 24, щоб можна було грати з цим
+          набором.
+        </p>
+
+        <div class="custom-form">
+          <input
+            class="name-input custom-emoji-input"
+            id="customEmojiInput"
+            type="text"
+            placeholder="😀"
+            maxlength="4"
+          />
+          <input
+            class="name-input"
+            id="customTextInput"
+            type="text"
+            placeholder="Опис події (макс 40 символів)"
+            maxlength="40"
+            onkeydown="if (event.key === 'Enter') addCustomEvent();"
+          />
+          <button
+            class="btn btn-primary custom-add-btn"
+            onclick="addCustomEvent()"
+          >
+            ➕
+          </button>
+        </div>
+
+        <div class="custom-counter" id="customCounter">0/24</div>
+
+        <div class="custom-list" id="customList"></div>
+
+        <button
+          class="btn btn-secondary custom-share-btn"
+          onclick="shareCustomSet()"
+        >
+          📤 Поділитися моїм набором
+        </button>
+        <button class="btn btn-primary rules-ok" onclick="hideCustomEditor()">
+          Готово 👍
+        </button>
+      </div>
+    </div>
+
+    <!-- IMPORT DIALOG (when ?import= is in URL) -->
+    <div
+      class="rules-overlay"
+      id="importOverlay"
+      onclick="hideImportDialog(event)"
+    >
+      <div class="rules-box" onclick="event.stopPropagation()">
+        <button
+          class="rules-close"
+          onclick="hideImportDialog()"
+          aria-label="Закрити"
+        >
+          ✕
+        </button>
+        <div class="rules-title">📥 Імпорт набору</div>
+        <p class="install-lead">
+          Хтось ділиться з тобою набором подій:
+          <br />
+          <b id="importTitle">«—»</b>
+          <span class="import-count" id="importCount">— подій</span>
+        </p>
+        <div class="custom-list" id="importPreview"></div>
+        <div class="import-actions">
+          <button class="btn btn-primary" onclick="importApply('append')">
+            ➕ Додати до моїх
+          </button>
+          <button class="btn btn-secondary" onclick="importApply('replace')">
+            ♻️ Замінити мої
+          </button>
+          <button class="btn btn-secondary" onclick="hideImportDialog()">
+            ❌ Скасувати
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- INSTALL HELP MODAL (iOS / fallback) -->
     <div
