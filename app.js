@@ -406,15 +406,204 @@ function continueGame() {
   document.getElementById("winOverlay").classList.remove("show");
 }
 
-function shareResult() {
+// Малює знімок картки на canvas і повертає Blob (PNG)
+function renderCardImage() {
+  const SIZE = 1080; // квадрат, IG-friendly
+  const cv = document.createElement("canvas");
+  cv.width = SIZE;
+  cv.height = SIZE;
+  const ctx = cv.getContext("2d");
+
+  // фон-градієнт
+  const bg = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+  bg.addColorStop(0, "#1a0533");
+  bg.addColorStop(0.5, "#2a0850");
+  bg.addColorStop(1, "#0d0120");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, SIZE, SIZE);
+
+  // заголовок
+  ctx.fillStyle = "#ffe600";
+  ctx.font = "bold 64px 'Bebas Neue', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("EUROVISION BINGO 2026", SIZE / 2, 90);
+
+  // ім'я гравця
+  const name = state.playerName || "Гравець";
+  ctx.fillStyle = "#00e5ff";
+  ctx.font = "bold 38px 'Nunito', sans-serif";
+  ctx.fillText("👤 " + name, SIZE / 2, 150);
+
+  // BINGO заголовок над клітинками
+  const gridStart = 230;
+  const gridSize = 820;
+  const cellGap = 12;
+  const cellSize = (gridSize - cellGap * 4) / 5;
+  const gridX = (SIZE - gridSize) / 2;
+
+  // букви BINGO
+  ctx.fillStyle = "#00e5ff";
+  ctx.font = "bold 48px 'Bebas Neue', sans-serif";
+  const letters = ["B", "I", "N", "G", "O"];
+  letters.forEach((L, i) => {
+    const cx = gridX + i * (cellSize + cellGap) + cellSize / 2;
+    ctx.fillText(L, cx, gridStart - 20);
+  });
+
+  // клітинки
+  for (let i = 0; i < 25; i++) {
+    const row = Math.floor(i / 5);
+    const col = i % 5;
+    const x = gridX + col * (cellSize + cellGap);
+    const y = gridStart + row * (cellSize + cellGap);
+
+    const isFree = i === FREE_CELL;
+    const isChecked = state.checked.includes(i);
+    const isWinLine = state.wonLines.some((line) => line.includes(i));
+
+    // фон клітинки
+    ctx.beginPath();
+    const r = 18;
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + cellSize, y, x + cellSize, y + cellSize, r);
+    ctx.arcTo(x + cellSize, y + cellSize, x, y + cellSize, r);
+    ctx.arcTo(x, y + cellSize, x, y, r);
+    ctx.arcTo(x, y, x + cellSize, y, r);
+    ctx.closePath();
+
+    if (isFree) {
+      const g = ctx.createLinearGradient(x, y, x + cellSize, y + cellSize);
+      g.addColorStop(0, "#ffe600");
+      g.addColorStop(1, "#ff8c00");
+      ctx.fillStyle = g;
+    } else if (isWinLine) {
+      const g = ctx.createLinearGradient(x, y, x + cellSize, y + cellSize);
+      g.addColorStop(0, "#ffe600");
+      g.addColorStop(1, "#ff2d78");
+      ctx.fillStyle = g;
+    } else if (isChecked) {
+      const g = ctx.createLinearGradient(x, y, x + cellSize, y + cellSize);
+      g.addColorStop(0, "#ff2d78");
+      g.addColorStop(1, "#7c3aed");
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = "#1e0640";
+    }
+    ctx.fill();
+
+    // текст клітинки
+    let emoji, text;
+    if (isFree) {
+      emoji = "⭐";
+      text = "FREE";
+    } else {
+      const itemIdx = i < FREE_CELL ? i : i - 1;
+      const item = state.cardItems[itemIdx];
+      if (!item) continue;
+      emoji = item.e;
+      text = item.t;
+    }
+
+    ctx.fillStyle = isFree ? "#1a0533" : "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "44px sans-serif";
+    ctx.fillText(emoji, x + cellSize / 2, y + cellSize / 2 - 8);
+
+    ctx.font = "bold 16px 'Nunito', sans-serif";
+    // обрізаємо текст, якщо задовгий
+    const maxWidth = cellSize - 16;
+    const words = text.split(" ");
+    const lines = [];
+    let cur = "";
+    for (const w of words) {
+      const test = cur ? cur + " " + w : w;
+      if (ctx.measureText(test).width > maxWidth && cur) {
+        lines.push(cur);
+        cur = w;
+      } else {
+        cur = test;
+      }
+    }
+    if (cur) lines.push(cur);
+    const lineH = 18;
+    const startY = y + cellSize / 2 + 30;
+    lines.slice(0, 3).forEach((ln, idx) => {
+      ctx.fillText(ln, x + cellSize / 2, startY + idx * lineH);
+    });
+
+    // галочка для відмічених
+    if (isChecked && !isFree) {
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.font = "bold 22px sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText("✓", x + cellSize - 12, y + 28);
+      ctx.textAlign = "center";
+    }
+  }
+
+  // підпис внизу
+  ctx.fillStyle = "#a78bbf";
+  ctx.font = "bold 24px 'Nunito', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(
+    "🎤 Базель • Швейцарія • 13–17 травня",
+    SIZE / 2,
+    SIZE - 35,
+  );
+
+  return new Promise((resolve) => cv.toBlob(resolve, "image/png", 0.92));
+}
+
+async function shareResult() {
   const name = state.playerName || "Гравець";
   const lines = state.wonLines.length;
   const checked = state.checked.filter((i) => i !== FREE_CELL).length;
-  const text = `🎤 Eurovision Bingo 2026 – я виграв(ла) BINGO!\n👤 ${name} | ${lines} лін. | ${checked} відмічено\n#Eurovision2026 #EurovisionBingo\n🔗 Грай і ти: ${location.href}`;
+  const text =
+    `🎤 Eurovision Bingo 2026 – я виграв(ла) BINGO!\n` +
+    `👤 ${name} | ${lines} лін. | ${checked} відмічено\n` +
+    `📸 IG: https://instagram.com/i_kurnytskyi\n` +
+    `#Eurovision2026 #EurovisionBingo\n` +
+    `🔗 Грай і ти: ${location.href}`;
 
+  // намагаємось поділитись із картинкою
+  try {
+    const blob = await renderCardImage();
+    if (blob) {
+      const file = new File([blob], "eurovision-bingo.png", {
+        type: "image/png",
+      });
+      if (
+        navigator.canShare &&
+        navigator.canShare({ files: [file] }) &&
+        navigator.share
+      ) {
+        await navigator.share({
+          title: "Eurovision Bingo 2026",
+          text,
+          files: [file],
+        });
+        return;
+      }
+      // якщо файли не підтримуються — скачати картинку
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "eurovision-bingo.png";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+  } catch (e) {
+    console.warn("image share failed", e);
+  }
+
+  // fallback — звичайний share/копіювання тексту
   if (navigator.share) {
-    navigator.share({ title: "Eurovision Bingo 2026", text });
-  } else if (navigator.clipboard) {
+    try {
+      await navigator.share({ title: "Eurovision Bingo 2026", text });
+      return;
+    } catch (e) {}
+  }
+  if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => alert("Скопійовано! 📋"));
   } else {
     prompt("Скопіюй:", text);
