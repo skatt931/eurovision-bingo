@@ -270,6 +270,7 @@ function renderCard() {
 
   updateStats();
   updateProgress();
+  updateGiftEgg();
   // Авто-підгонка шрифту після того, як браузер порахує реальні розміри
   requestAnimationFrame(fitAllCellTexts);
 }
@@ -388,7 +389,22 @@ function toggleCell(idx) {
 
   updateStats();
   updateProgress();
+  updateGiftEgg();
   saveState();
+}
+
+function updateGiftEgg() {
+  const el = document.getElementById("giftEgg");
+  if (!el) return;
+  el.classList.toggle("visible", state.wonLines.length >= 2);
+}
+
+function giftEggClick() {
+  window.open(
+    "https://youtu.be/PvVsdj5hE_0?si=b6UzUoYoj5YEsgeh&t=43",
+    "_blank",
+    "noopener",
+  );
 }
 
 function highlightWinLines() {

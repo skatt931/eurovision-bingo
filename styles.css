@@ -798,3 +798,64 @@ body.is-installed .install-btn { display: none !important; }
   line-height: 1.4;
 }
 .install-note b { color: var(--accent2); }
+
+/* EASTER EGG #2 — gift */
+.gift-egg {
+  position: fixed;
+  left: 50%;
+  bottom: 60px;
+  transform: translateX(-50%) translateY(8px);
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent3);
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  z-index: 6;
+  user-select: none;
+  text-shadow: 0 0 18px #ffe60088, 0 0 32px #ff2d7855;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.gift-egg.visible {
+  display: inline-flex;
+  opacity: 0.45;
+  pointer-events: auto;
+  animation: giftFloat 4s ease-in-out infinite;
+}
+.gift-egg.visible:hover { opacity: 0.95; }
+.gift-egg-emoji {
+  font-size: 22px;
+  display: inline-block;
+  animation: giftWiggle 3s ease-in-out infinite;
+}
+.gift-egg-text {
+  background: linear-gradient(90deg, var(--accent3), var(--accent1), var(--accent2), var(--accent3));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: giftShimmer 3s linear infinite;
+}
+@keyframes giftFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.45; }
+  50% { transform: translateX(-50%) translateY(-6px); opacity: 0.7; }
+}
+@keyframes giftWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+@keyframes giftShimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* Якщо win-overlay або інша модалка відкрита — ховаємо подарунок */
+body:has(.win-overlay.show) .gift-egg,
+body:has(.rules-overlay.show) .gift-egg { display: none !important; }
