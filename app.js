@@ -156,6 +156,9 @@ let state = {
   wonLines: [],
   hasBingo: false,
   hardMode: false,
+  // Прогрес окремо для кожного набору: { [packId]: { seed, checked, wonLines, hasBingo, hardMode } }
+  // Маркер hardMode потрібен щоб не відновлювати стан, створений в іншому режимі.
+  progressByPack: {},
 };
 
 function hasFree() {
@@ -172,16 +175,62 @@ function cellItemIndex(i) {
   return i < FREE_CELL ? i : i - 1;
 }
 
+// Композитний ключ: packId__mode → дозволяє зберігати окремі стани
+// для (pack, mode) пар. Прогрес у Хард-режимі не затирає нормальний — і навпаки.
+function progressKeyFor(idx, hardMode) {
+  const id = PACKS[idx]?.id;
+  if (!id) return null;
+  return id + "__" + (hardMode ? "h" : "n");
+}
+
+function snapshotCurrentPack() {
+  const key = progressKeyFor(state.pack, state.hardMode);
+  if (!key) return;
+  if (!state.progressByPack) state.progressByPack = {};
+  state.progressByPack[key] = {
+    seed: state.seed,
+    checked: [...state.checked],
+    wonLines: state.wonLines.map((l) => [...l]),
+    hasBingo: state.hasBingo,
+  };
+}
+
+// Відновлює (або генерує новий) стан для (pack, current mode) пари
+function applyPackProgress(idx) {
+  const key = progressKeyFor(idx, state.hardMode);
+  const saved = key && state.progressByPack?.[key];
+  if (saved?.seed !== null && saved?.seed !== undefined) {
+    state.seed = saved.seed;
+    state.checked = (saved.checked || []).map(Number);
+    state.wonLines = (saved.wonLines || []).map((l) => l.map(Number));
+    state.hasBingo = !!saved.hasBingo;
+    state.cardItems = generateCard(idx, state.seed);
+    if (state.cardItems.length === cardLen()) {
+      if (hasFree() && !state.checked.includes(FREE_CELL)) {
+        state.checked.push(FREE_CELL);
+      }
+      return true;
+    }
+  }
+  state.seed = Math.random();
+  state.cardItems = generateCard(idx, state.seed);
+  if (!state.cardItems.length) return false;
+  state.checked = hasFree() ? [FREE_CELL] : [];
+  state.wonLines = [];
+  state.hasBingo = false;
+  return true;
+}
+
 function saveState() {
   try {
+    // Перед записом — підхопимо поточний прогрес в snapshot активного набору
+    snapshotCurrentPack();
     const d = {
+      v: 2,
       pack: state.pack,
       playerName: state.playerName,
-      seed: state.seed,
-      checked: state.checked,
-      wonLines: state.wonLines,
-      hasBingo: state.hasBingo,
       hardMode: state.hardMode,
+      progressByPack: state.progressByPack,
     };
     localStorage.setItem("escBingo2026", JSON.stringify(d));
   } catch (e) {
@@ -194,15 +243,34 @@ function loadState() {
     const raw = localStorage.getItem("escBingo2026");
     if (!raw) return false;
     const d = JSON.parse(raw);
-    if (!d || d.seed === null || d.seed === undefined) return false;
-    Object.assign(state, d);
-    state.hardMode = !!state.hardMode;
-    // Захист від збереженого pack-індексу, якого більше немає (наприклад, custom при вимкнутій фічі)
+    if (!d) return false;
+
+    state.pack = typeof d.pack === "number" ? d.pack : 0;
+    state.playerName = d.playerName || "";
+    state.hardMode = !!d.hardMode;
     if (!PACKS[state.pack]) state.pack = 0;
-    state.checked = (state.checked || []).map(Number);
-    state.wonLines = (state.wonLines || []).map((line) => line.map(Number));
-    state.cardItems = generateCard(state.pack, state.seed);
-    return state.cardItems.length === cardLen();
+
+    // v2 формат: progressByPack з composite-ключами packId__mode
+    if (d.progressByPack && typeof d.progressByPack === "object") {
+      state.progressByPack = d.progressByPack;
+    } else if (d.seed !== null && d.seed !== undefined) {
+      // Міграція з v1 (один стан на все) → переносимо в slot активного (pack, mode)
+      const key = progressKeyFor(state.pack, state.hardMode);
+      state.progressByPack = {};
+      if (key) {
+        state.progressByPack[key] = {
+          seed: d.seed,
+          checked: (d.checked || []).map(Number),
+          wonLines: (d.wonLines || []).map((line) => line.map(Number)),
+          hasBingo: !!d.hasBingo,
+        };
+      }
+    } else {
+      state.progressByPack = {};
+    }
+
+    // Активуємо стан для поточного набору
+    return applyPackProgress(state.pack);
   } catch (e) {
     return false;
   }
@@ -396,17 +464,19 @@ function renderPacks() {
       const isCustomInsufficient =
         p.id === CUSTOM_PACK_ID && (!p.items || p.items.length < 24);
       if (isCustomInsufficient) {
-        // Запам'ятовуємо намір перемкнутись — щоб після закриття редактора авто-перейти
         pendingPackSwitch = i;
         openCustomEditor();
         return;
       }
+      if (state.pack === i) return; // вже активний — нічого не робимо
+      // 1) Зберігаємо прогрес ПОТОЧНОГО набору перед перемиканням
+      snapshotCurrentPack();
+      // 2) Перемикаємось і відновлюємо (або створюємо новий) стан нового набору
       state.pack = i;
-      state.checked = hasFree() ? [FREE_CELL] : [];
-      state.wonLines = [];
-      state.hasBingo = false;
-      state.seed = Math.random();
-      state.cardItems = generateCard(i, state.seed);
+      if (!applyPackProgress(i)) {
+        // Не вдалось згенерувати картку (наприклад, custom з нестачею подій)
+        return;
+      }
       saveState();
       renderPacks();
       renderCard();
@@ -489,13 +559,20 @@ function highlightWinLines() {
   });
 }
 
+// Зберігаємо timer, щоб мати змогу скасувати показ overlay якщо лінія розпалась
+let _bingoOverlayTimer = null;
+
 function triggerBingo() {
   const shout = document.getElementById("bingoShout");
   shout.classList.remove("fire");
   void shout.offsetWidth;
   shout.classList.add("fire");
-  setTimeout(() => {
+  if (_bingoOverlayTimer) clearTimeout(_bingoOverlayTimer);
+  _bingoOverlayTimer = setTimeout(() => {
+    _bingoOverlayTimer = null;
     shout.classList.remove("fire");
+    // B1 fix: якщо за час анімації лінія була знята — overlay не показуємо
+    if (!state.hasBingo || state.wonLines.length === 0) return;
     document.getElementById("winSubtitle").textContent =
       `${state.playerName || "Ти"} – справжня зірка Євробачення! 🌟`;
     document.getElementById("winOverlay").classList.add("show");
@@ -945,18 +1022,17 @@ function rejectCookies() {
 //  HARD MODE — toggle
 // ============================================================
 function toggleHardMode() {
+  // Зберігаємо поточний прогрес у старому режимі (для ІНШИХ пакетів)
+  snapshotCurrentPack();
   state.hardMode = !state.hardMode;
-  // Регенеруємо картку з новим режимом
-  state.seed = Math.random();
-  state.cardItems = generateCard(state.pack, state.seed);
-  if (!state.cardItems.length) {
+  // applyPackProgress спробує відновити прогрес уже в новому режимі;
+  // якщо для цієї пари (pack, mode) збереженого немає — згенерує свіжу картку.
+  if (!applyPackProgress(state.pack)) {
     state.hardMode = !state.hardMode; // revert
+    snapshotCurrentPack(); // повертаємо як було
     alert("У цьому наборі замало подій (потрібно мінімум 24).");
     return;
   }
-  state.checked = hasFree() ? [FREE_CELL] : [];
-  state.wonLines = [];
-  state.hasBingo = false;
   saveState();
   updateHardToggleUI();
   renderCard();
@@ -1331,17 +1407,12 @@ function init() {
   setTimeout(checkImportFromURL, 300);
 
   if (loaded && state.cardItems?.length === cardLen()) {
-    // Відновлюємо з кукісів — картку НЕ перегенеруємо
     if (hasFree() && !state.checked.includes(FREE_CELL)) {
       state.checked.push(FREE_CELL);
     }
   } else {
-    // Перший запуск або пошкоджений стан — генеруємо нову картку
-    state.seed = Math.random();
-    state.cardItems = generateCard(state.pack, state.seed);
-    state.checked = hasFree() ? [FREE_CELL] : [];
-    state.wonLines = [];
-    state.hasBingo = false;
+    // Перший запуск або пошкоджений стан — створюємо картку для активного набору
+    applyPackProgress(state.pack);
     saveState();
   }
 
@@ -1366,6 +1437,8 @@ function init() {
 
   initRotateHint();
   checkCookieConsent();
+  // B3: якщо вже встановлено як PWA — ховаємо точки входу для встановлення
+  if (isStandalone()) document.body.classList.add("is-installed");
 }
 
 init();
