@@ -722,22 +722,81 @@ function easterEggClick() {
 }
 
 // ============================================================
-//  PWA install prompt
+//  PWA install
 // ============================================================
-let deferredPrompt;
+let deferredPrompt = null;
+
+function isIOS() {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+function isStandalone() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true
+  );
+}
+
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  document
-    .getElementById("installBanner")
-    .addEventListener("click", async () => {
-      if (!deferredPrompt) return;
+  document.body.classList.add("can-install");
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+  document.body.classList.remove("can-install");
+  document.body.classList.add("is-installed");
+  const banner = document.getElementById("installBanner");
+  if (banner) banner.classList.add("hidden");
+});
+
+async function tryInstall() {
+  if (isStandalone()) {
+    alert("✅ Додаток вже встановлено!");
+    return;
+  }
+  // Android / Chrome / Edge — нативний промпт
+  if (deferredPrompt) {
+    try {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") closeInstall();
+      if (outcome === "accepted") {
+        const banner = document.getElementById("installBanner");
+        if (banner) banner.classList.add("hidden");
+      }
       deferredPrompt = null;
-    });
-});
+      document.body.classList.remove("can-install");
+      return;
+    } catch (e) {
+      console.warn("install prompt failed", e);
+    }
+  }
+  // iOS Safari + інші браузери без API — показуємо інструкцію
+  showInstallHelp();
+}
+
+function showInstallHelp() {
+  const o = document.getElementById("iosInstallOverlay");
+  if (!o) return;
+  // Перемикаємо вміст залежно від платформи
+  const iosBlock = o.querySelector(".ios-install-ios");
+  const androidBlock = o.querySelector(".ios-install-android");
+  if (iosBlock && androidBlock) {
+    const ios = isIOS();
+    iosBlock.style.display = ios ? "" : "none";
+    androidBlock.style.display = ios ? "none" : "";
+  }
+  o.classList.add("show");
+}
+
+function hideInstallHelp(e) {
+  if (e?.target?.id && e.target.id !== "iosInstallOverlay") return;
+  const o = document.getElementById("iosInstallOverlay");
+  if (o) o.classList.remove("show");
+}
 
 // ============================================================
 //  INIT
@@ -784,9 +843,9 @@ function init() {
 
 init();
 
-// Register service worker
+// Register service worker (відносний шлях — щоб працював на GitHub Pages у підпапці)
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }

@@ -724,3 +724,77 @@ body::after {
   margin-top: 12px;
   justify-content: center;
 }
+
+/* INSTALL BUTTON */
+.install-btn {
+  font-size: 16px;
+  padding: 5px 10px;
+}
+.install-btn:hover { color: var(--accent3); border-color: var(--accent3); }
+
+/* Якщо вже встановлено — ховаємо всі точки входу */
+body.is-installed .install-banner,
+body.is-installed .install-btn { display: none !important; }
+
+/* Робимо банер банер-кнопкою, із hover/active */
+.install-banner { transition: transform 0.2s, border-color 0.2s; }
+.install-banner:hover { transform: translateY(-1px); border-color: var(--accent3); }
+.install-banner:active { transform: scale(0.98); }
+
+/* INSTALL HELP MODAL */
+.install-lead {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.install-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #ffffff14;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.install-step-num {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent1), var(--cell-checked2));
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--glow1);
+}
+.install-step-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  font-weight: 500;
+}
+.install-step-text b { color: var(--accent2); font-weight: 800; }
+.install-step-icon {
+  display: inline-block;
+  font-size: 16px;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+.install-note {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: rgba(0, 229, 255, 0.06);
+  border-left: 3px solid var(--accent2);
+  border-radius: 6px;
+  line-height: 1.4;
+}
+.install-note b { color: var(--accent2); }

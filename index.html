@@ -62,16 +62,24 @@
       </div>
 
       <!-- INSTALL BANNER -->
-      <div class="install-banner" id="installBanner">
+      <div
+        class="install-banner"
+        id="installBanner"
+        onclick="tryInstall()"
+        role="button"
+        tabindex="0"
+      >
         <div class="install-icon">📲</div>
         <div class="install-text">
-          <strong>Встанови як додаток!</strong>
-          <span
-            >На iPhone: Safari → «Поділитися» → «На екран «Домів»». На Android:
-            меню браузера → «Встановити»</span
-          >
+          <strong>Встановити як додаток</strong>
+          <span>Один тап — і гра в тебе на робочому столі</span>
         </div>
-        <div class="install-close" onclick="closeInstall()">✕</div>
+        <div
+          class="install-close"
+          onclick="event.stopPropagation(); closeInstall()"
+        >
+          ✕
+        </div>
       </div>
 
       <!-- PACK SELECTOR -->
@@ -96,6 +104,13 @@
           title="Перемішати картку"
         >
           🔀
+        </button>
+        <button
+          class="rules-btn install-btn"
+          onclick="tryInstall()"
+          title="Встановити як додаток"
+        >
+          📲
         </button>
         <button class="rules-btn" onclick="showRules()">📖 Правила</button>
       </div>
@@ -194,6 +209,93 @@
 
     <!-- BINGO shout -->
     <div class="bingo-shout" id="bingoShout">BINGO!</div>
+
+    <!-- INSTALL HELP MODAL (iOS / fallback) -->
+    <div
+      class="rules-overlay"
+      id="iosInstallOverlay"
+      onclick="hideInstallHelp(event)"
+    >
+      <div class="rules-box" onclick="event.stopPropagation()">
+        <button
+          class="rules-close"
+          onclick="hideInstallHelp()"
+          aria-label="Закрити"
+        >
+          ✕
+        </button>
+        <div class="rules-title">📲 Встановити</div>
+
+        <!-- iOS instructions -->
+        <div class="ios-install-ios">
+          <p class="install-lead">
+            На iPhone/iPad браузер Safari не має кнопки автовстановлення. Зроби
+            3 прості кроки:
+          </p>
+          <div class="install-step">
+            <div class="install-step-num">1</div>
+            <div class="install-step-text">
+              Тицьни на іконку <b>«Поділитися»</b>
+              <span class="install-step-icon">⬆️</span> внизу екрана (Safari)
+              або вгорі праворуч.
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">2</div>
+            <div class="install-step-text">
+              Прокрути меню вниз і вибери <b>«На екран Домів»</b>
+              <span class="install-step-icon">➕</span>
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">3</div>
+            <div class="install-step-text">
+              Натисни <b>«Додати»</b> у верхньому правому куті. Готово — іконка
+              з'явиться на робочому столі 🎤
+            </div>
+          </div>
+          <p class="install-note">
+            ⚠️ Працює <b>тільки в Safari</b>. У Chrome/Firefox на iPhone цієї
+            опції немає (через обмеження Apple).
+          </p>
+        </div>
+
+        <!-- Android / desktop fallback -->
+        <div class="ios-install-android" style="display: none">
+          <p class="install-lead">
+            Твій браузер не запропонував автоматичне встановлення. Спробуй
+            вручну:
+          </p>
+          <div class="install-step">
+            <div class="install-step-num">1</div>
+            <div class="install-step-text">
+              Відкрий <b>меню браузера</b> (три крапки ⋮ вгорі справа).
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">2</div>
+            <div class="install-step-text">
+              Знайди пункт <b>«Встановити застосунок»</b>,
+              <b>«Додати на головний екран»</b> або <b>«Install app»</b>.
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">3</div>
+            <div class="install-step-text">
+              Підтверди — і гра буде як звичайний застосунок 🎤
+            </div>
+          </div>
+          <p class="install-note">
+            💡 Якщо нічого не знаходиться — використай Chrome або Edge, у них
+            ця опція є.
+          </p>
+        </div>
+
+        <button class="btn btn-primary rules-ok" onclick="hideInstallHelp()">
+          Зрозуміло! 👍
+        </button>
+      </div>
+    </div>
 
     <!-- RULES MODAL -->
     <div class="rules-overlay" id="rulesOverlay" onclick="hideRules(event)">
