@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <meta name="theme-color" content="#1a0533" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Eurovision Bingo" />
+    <meta
+      name="description"
+      content="Eurovision 2026 Bingo – грай під час трансляції!"
+    />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <title>🎤 Eurovision Bingo 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- MONOBANK BANNER -->
+    <div class="mono-banner">
+      <a
+        href="https://send.monobank.ua/jar/stetsenko"
+        target="_blank"
+        rel="noopener"
+      >
+        <span class="mono-tag">🇺🇦 Підтримай</span>
+        Збір пана Стерненка на ЗСУ — натисни тут 💛
+      </a>
+    </div>
+
+    <div class="wrap">
+      <!-- HEADER -->
+      <div class="header">
+        <div class="esc-logo">Eurovision Song Contest</div>
+        <div class="title">БІНГО 2026</div>
+        <div class="subtitle">Базель • Швейцарія • 13–17 травня</div>
+        <div class="heart-row">🎤 💫 🎵 ✨ 🎶</div>
+      </div>
+
+      <!-- INSTALL BANNER -->
+      <div class="install-banner" id="installBanner">
+        <div class="install-icon">📲</div>
+        <div class="install-text">
+          <strong>Встанови як додаток!</strong>
+          <span
+            >На iPhone: Safari → «Поділитися» → «На екран «Домів»». На Android:
+            меню браузера → «Встановити»</span
+          >
+        </div>
+        <div class="install-close" onclick="closeInstall()">✕</div>
+      </div>
+
+      <!-- PACK SELECTOR -->
+      <div class="section-label">Набір карток</div>
+      <div class="packs" id="packSelector"></div>
+
+      <!-- PLAYER -->
+      <div class="section-label">Твоє ім'я</div>
+      <div class="name-row">
+        <input
+          class="name-input"
+          id="playerName"
+          type="text"
+          placeholder="Введи своє ім'я..."
+          maxlength="20"
+        />
+        <button
+          class="shuffle-btn"
+          onclick="newCard()"
+          title="Перемішати картку"
+        >
+          🔀
+        </button>
+        <button class="rules-btn" onclick="showRules()">📖 Правила</button>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num" id="statChecked">0</div>
+          <div class="stat-lbl">відмічено</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statLines">0</div>
+          <div class="stat-lbl">лінії</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statLeft">25</div>
+          <div class="stat-lbl">залишилось</div>
+        </div>
+      </div>
+
+      <!-- BINGO CARD -->
+      <div class="card-wrap">
+        <div class="card-header">
+          <div class="player-tag" id="playerTag">👤 Гравець</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="progress-txt" id="progressTxt">0%</div>
+        </div>
+        <div class="bingo-letters">
+          <div class="bingo-letter">B</div>
+          <div class="bingo-letter">I</div>
+          <div class="bingo-letter">N</div>
+          <div class="bingo-letter">G</div>
+          <div class="bingo-letter">O</div>
+        </div>
+        <div class="bingo-grid" id="bingoGrid"></div>
+      </div>
+    </div>
+
+    <!-- EASTER EGG -->
+    <div class="easter-egg" id="easterEgg" onclick="easterEggClick()" title="">
+      🌸
+    </div>
+
+    <!-- SOCIAL FOOTER -->
+    <div class="social-footer">
+      <span class="made-by">Made by</span>
+      <a
+        class="social-link"
+        href="https://t.me/yourhandle"
+        target="_blank"
+        rel="noopener"
+      >
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"
+          />
+        </svg>
+        Telegram
+      </a>
+      <a
+        class="social-link"
+        href="https://instagram.com/yourhandle"
+        target="_blank"
+        rel="noopener"
+      >
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"
+          />
+        </svg>
+        Instagram
+      </a>
+    </div>
+
+    <!-- WIN OVERLAY -->
+    <div class="win-overlay" id="winOverlay">
+      <div class="win-box">
+        <div class="confetti-row">🎉🏆🎤🎉</div>
+        <div class="win-title">BINGO!</div>
+        <div class="win-subtitle" id="winSubtitle">Ти зробив(ла) це! 🎶</div>
+        <div class="win-btns">
+          <button class="btn btn-primary" onclick="shareResult()">
+            📤 Поділитися перемогою
+          </button>
+          <button class="btn btn-secondary" onclick="continueGame()">
+            ▶️ Продовжити гру
+          </button>
+          <button class="btn btn-secondary" onclick="newCard()">
+            🔀 Нова картка
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BINGO shout -->
+    <div class="bingo-shout" id="bingoShout">BINGO!</div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
