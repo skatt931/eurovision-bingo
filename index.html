@@ -76,7 +76,10 @@
         </div>
         <div
           class="install-close"
-          onclick="event.stopPropagation(); closeInstall()"
+          onclick="
+            event.stopPropagation();
+            closeInstall();
+          "
         >
           ✕
         </div>
@@ -243,7 +246,7 @@
           <div class="install-step">
             <div class="install-step-num">2</div>
             <div class="install-step-text">
-              Прокрути меню вниз і вибери <b>«На екран Домів»</b>
+              Прокрути меню вниз і вибери <b>«На домашній екран»</b>
               <span class="install-step-icon">➕</span>
             </div>
           </div>
@@ -254,10 +257,6 @@
               з'явиться на робочому столі 🎤
             </div>
           </div>
-          <p class="install-note">
-            ⚠️ Працює <b>тільки в Safari</b>. У Chrome/Firefox на iPhone цієї
-            опції немає (через обмеження Apple).
-          </p>
         </div>
 
         <!-- Android / desktop fallback -->
@@ -286,8 +285,8 @@
             </div>
           </div>
           <p class="install-note">
-            💡 Якщо нічого не знаходиться — використай Chrome або Edge, у них
-            ця опція є.
+            💡 Якщо нічого не знаходиться — використай Chrome або Edge, у них ця
+            опція є.
           </p>
         </div>
 
@@ -325,9 +324,9 @@
         <div class="rules-section">
           <div class="rules-h">📦 Набори карток</div>
           <p>
-            Угорі ти можеш вибрати тематику: <b>🎤 Класика</b>,
-            <b>😱 Драма</b>, <b>👗 Мода</b> або <b>🤡 Дивацтва</b>. У кожному
-            наборі — 24 події. При зміні набору картка перемішується заново.
+            Угорі ти можеш вибрати тематику: <b>🎤 Класика</b>, <b>😱 Драма</b>,
+            <b>👗 Мода</b> або <b>🤡 Дивацтва</b>. У кожному наборі — 24 події.
+            При зміні набору картка перемішується заново.
           </p>
         </div>
 
@@ -369,7 +368,7 @@
         <div class="rules-section">
           <div class="rules-h">📲 Встановити як додаток</div>
           <p>
-            На iPhone: <b>Safari → «Поділитися» → «На екран Домів»</b>. На
+            На iPhone: <b>Safari → «Поділитися» → «На домашній екран»</b>. На
             Android: <b>меню браузера → «Встановити»</b>. Гра буде як звичайний
             застосунок.
           </p>

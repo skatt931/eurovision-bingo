@@ -18,7 +18,7 @@ const PACKS = [
       { e: "🥲", t: "Ведучий плаче" },
       { e: "🇬🇧", t: "Мова оригіналу але приспів англійською" },
       { e: "🥷", t: "Фантомас" },
-      { e: "🤩", t: "Несподіваний фаворит" },
+      { e: "🤩", t: "Неочікуваний лідер" },
       { e: "🎻", t: "Скрипка грає під плюс" },
       { e: "🎼", t: "Модуляція в останньому приспіві" },
       { e: "😭", t: "Фанати плачуть" },
@@ -369,20 +369,21 @@ function toggleCell(idx) {
   cell.classList.add("cell-pop");
   setTimeout(() => cell.classList.remove("cell-pop"), 300);
 
-  // Check win
+  // Перерахунок ліній: завжди береться актуальний знімок,
+  // інакше при знятті відмітки лічильник «лінії» не зменшується.
   const newLines = checkWin(state.checked);
   const genuinelyNew = newLines.filter(
     (l) => !state.wonLines.some((ol) => ol.join() === l.join()),
   );
+  state.wonLines = newLines;
+  highlightWinLines();
 
-  if (genuinelyNew.length > 0) {
-    state.wonLines = newLines;
-    highlightWinLines();
-
-    if (!state.hasBingo) {
-      state.hasBingo = true;
-      triggerBingo();
-    }
+  if (newLines.length === 0) {
+    // Усі лінії розпались — скидаємо прапорець, щоб наступне бінго знов тригернулось
+    state.hasBingo = false;
+  } else if (genuinelyNew.length > 0 && !state.hasBingo) {
+    state.hasBingo = true;
+    triggerBingo();
   }
 
   updateStats();
@@ -585,11 +586,7 @@ function renderCardImage() {
   ctx.fillStyle = "#a78bbf";
   ctx.font = "bold 24px 'Nunito', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(
-    "🎤 Базель • Швейцарія • 13–17 травня",
-    SIZE / 2,
-    SIZE - 35,
-  );
+  ctx.fillText("🎤 Базель • Швейцарія • 13–17 травня", SIZE / 2, SIZE - 35);
 
   return new Promise((resolve) => cv.toBlob(resolve, "image/png", 0.92));
 }
