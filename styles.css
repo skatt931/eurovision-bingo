@@ -1138,3 +1138,293 @@ body:has(.rules-overlay.show) .gift-egg { display: none !important; }
   font-size: 13px;
   margin-top: 0;
 }
+
+/* RATE PAGE */
+.rate-wrap { max-width: 760px; }
+
+.nav-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 8px 0 4px;
+  flex-wrap: wrap;
+}
+
+.rate-legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 8px 0 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.rate-legend > div {
+  background: var(--surface);
+  border: 1px solid #ffffff15;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.rate-legend b { color: var(--text); font-weight: 800; }
+
+.rate-table-wrap {
+  background: linear-gradient(135deg, var(--surface), var(--surface2));
+  border: 1.5px solid #ffffff15;
+  border-radius: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.rate-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 560px;
+  font-size: 12px;
+  color: var(--text);
+}
+.rate-table thead th {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, #2a0850, #1a0533);
+  color: var(--accent2);
+  font-family: 'Nunito', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 4px;
+  text-align: center;
+  line-height: 1.2;
+  border-bottom: 2px solid var(--accent1);
+  z-index: 1;
+}
+.rate-table thead th.col-country {
+  text-align: left;
+  padding-left: 8px;
+}
+.rate-table tbody td {
+  padding: 6px 4px;
+  border-bottom: 1px solid #ffffff10;
+  text-align: center;
+  vertical-align: middle;
+}
+.rate-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.rate-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+.rate-table .num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  color: var(--accent3);
+  width: 28px;
+  letter-spacing: 1px;
+}
+.rate-table .country {
+  text-align: left;
+  padding-left: 8px;
+  min-width: 120px;
+}
+.country-name {
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.country-song {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.rate-table .score input {
+  width: 42px;
+  background: var(--surface);
+  border: 1.5px solid #ffffff22;
+  border-radius: 8px;
+  padding: 6px 2px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  outline: none;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  transition: all 0.15s;
+}
+.rate-table .score input::-webkit-outer-spin-button,
+.rate-table .score input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.rate-table .score input:focus {
+  border-color: var(--accent2);
+  background: var(--surface2);
+  box-shadow: 0 0 8px #00e5ff44;
+}
+.rate-table .score input:not(:placeholder-shown) {
+  border-color: var(--accent1);
+  color: var(--accent3);
+}
+
+.rate-table .avg-cell {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  width: 50px;
+}
+.rate-table .avg-cell.filled {
+  color: var(--accent3);
+  text-shadow: 0 0 12px #ffe60066;
+}
+
+/* LEADERBOARD */
+.leaderboard {
+  background: linear-gradient(135deg, var(--surface), var(--surface2));
+  border: 1.5px solid var(--accent3);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 24px #ffe60022;
+}
+.leaderboard-empty {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 6px;
+}
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 4px;
+}
+.leaderboard-row:last-child { margin-bottom: 0; }
+
+/* Medal-рядки (перші 3) — крупніші, з акцентом */
+.leaderboard-row.is-medal {
+  padding: 8px 10px;
+  background: rgba(255, 230, 0, 0.06);
+  border: 1px solid #ffe60022;
+  margin-bottom: 6px;
+}
+
+.lb-medal {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+  flex: 0 0 32px;
+}
+.lb-rank {
+  width: 32px;
+  flex: 0 0 32px;
+  text-align: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+.lb-country {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderboard-row.is-medal .lb-country { font-size: 14px; }
+.lb-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent3);
+  letter-spacing: 1px;
+  flex: 0 0 auto;
+}
+.leaderboard-row.is-medal .lb-score {
+  font-size: 24px;
+  text-shadow: 0 0 12px #ffe60066;
+}
+
+/* (social-footer тепер показується і на rate-сторінці) */
+
+/* Anchor-варіант rules-btn (для лінків між сторінками) */
+a.rules-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rate-link { color: var(--accent1) !important; border-color: var(--accent1) !important; }
+.rate-link:hover { color: var(--accent3) !important; border-color: var(--accent3) !important; }
+
+/* PAGE TABS — навігація між Бінго та Оцінкою */
+.page-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0 14px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1.5px solid #ffffff15;
+  border-radius: 14px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.page-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--text-dim);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.page-tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+.page-tab.active {
+  background: linear-gradient(135deg, var(--accent1), var(--cell-checked2));
+  color: #fff;
+  box-shadow: 0 4px 14px #ff2d7855;
+  cursor: default;
+}
+.page-tab.active:hover {
+  background: linear-gradient(135deg, var(--accent1), var(--cell-checked2));
+}
+.page-tab-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.page-tab-label {
+  text-transform: uppercase;
+}

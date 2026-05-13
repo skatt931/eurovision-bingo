@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <meta name="theme-color" content="#1a0533" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Eurovision Bingo" />
+    <meta name="description" content="Оцінюй виступи на фіналі Євробачення 2026" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+
+    <!-- Google Analytics (GA4) з Consent Mode v2 -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-YVQWF1XXP8"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("consent", "default", {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+      });
+      gtag("js", new Date());
+      gtag("config", "G-YVQWF1XXP8");
+    </script>
+
+    <title>🎤 Оцінювання — Eurovision Bingo 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- MONOBANK BANNER -->
+    <div class="mono-banner">
+      <a
+        href="https://send.monobank.ua/jar/2JbpBYkhMv"
+        target="_blank"
+        rel="noopener"
+      >
+        <span class="mono-tag">🇺🇦 Підтримай</span>
+        Збір на Поточний RUSORIZ 💛
+      </a>
+    </div>
+
+    <div class="wrap rate-wrap">
+      <!-- HEADER -->
+      <div class="header">
+        <div class="esc-logo">Eurovision Song Contest</div>
+        <div class="title">ОЦІНКА</div>
+        <div class="subtitle">Фінал • 17 травня • Базель</div>
+      </div>
+
+      <!-- PAGE TABS -->
+      <div class="page-tabs">
+        <a href="index.html" class="page-tab">
+          <span class="page-tab-icon">🎤</span>
+          <span class="page-tab-label">Бінго</span>
+        </a>
+        <a href="rate.html" class="page-tab active">
+          <span class="page-tab-icon">🎯</span>
+          <span class="page-tab-label">Оцінка</span>
+        </a>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="nav-row">
+        <button class="rules-btn" onclick="exportRatings()">📤 Експорт</button>
+        <button class="rules-btn" onclick="resetAllRatings()">
+          🗑 Скинути всі
+        </button>
+      </div>
+
+      <!-- LEGEND -->
+      <div class="rate-legend">
+        <div><b>🎤 Вокал</b> 1-10</div>
+        <div><b>💅 Образ</b> 1-10</div>
+        <div><b>🎭 Номер</b> 1-10</div>
+        <div><b>🆕 Новизна</b> 1-10</div>
+        <div><b>😎 Прогноз</b> 1-15</div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="rate-table-wrap">
+        <table class="rate-table" id="rateTable">
+          <thead>
+            <tr>
+              <th class="col-num">№</th>
+              <th class="col-country">Країна/Пісня</th>
+              <th class="col-score">🎤<br />Вокал</th>
+              <th class="col-score">💅<br />Образ</th>
+              <th class="col-score">🎭<br />Номер</th>
+              <th class="col-score">🆕<br />Новизна</th>
+              <th class="col-score">😎<br />Прогноз</th>
+              <th class="col-avg">Сер.</th>
+            </tr>
+          </thead>
+          <tbody id="rateBody"></tbody>
+        </table>
+      </div>
+
+      <!-- LEADERBOARD -->
+      <div class="section-label">🏆 Твій рейтинг</div>
+      <div class="leaderboard" id="leaderboard">
+        <div class="leaderboard-empty">
+          Оціни виступи — побачиш рейтинг
+        </div>
+      </div>
+    </div>
+
+    <!-- SOCIAL FOOTER -->
+    <div class="social-footer">
+      <span class="made-by">Подякувати</span>
+      <a
+        class="social-link"
+        href="https://www.threads.com/@i_kurnytskyi"
+        target="_blank"
+        rel="noopener"
+      >
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M17.83 11.36c-.09-.04-.18-.08-.27-.12-.16-2.93-1.75-4.6-4.43-4.62h-.04c-1.6 0-2.93.68-3.75 1.93l1.47 1.01c.61-.92 1.56-1.12 2.28-1.12h.02c.9.01 1.58.27 2.02.78.32.37.54.88.65 1.52-.83-.14-1.73-.18-2.69-.13-2.71.16-4.45 1.74-4.33 3.94.06 1.12.62 2.08 1.57 2.71.81.53 1.85.79 2.93.73 1.43-.08 2.55-.62 3.34-1.62.6-.76.98-1.74 1.14-2.97.66.4 1.16.93 1.43 1.56.46 1.07.49 2.83-.95 4.26-1.26 1.26-2.78 1.8-5.07 1.82-2.54-.02-4.46-.83-5.71-2.42C5.07 16.13 4.45 14 4.43 12c.02-2 .64-4.13 1.81-5.61C7.49 4.8 9.41 3.99 11.95 3.97c2.56.02 4.51.83 5.81 2.4.64.78 1.12 1.76 1.43 2.92l1.84-.49c-.39-1.42-.99-2.65-1.84-3.68C17.55 2.92 15.13 1.94 12 1.92H12c-3.13.02-5.51 1-7.18 2.96C3.32 6.62 2.55 9.04 2.5 12v.01c.06 2.95.82 5.37 2.32 7.13C6.49 21.07 8.87 22.07 12 22.08h.01c2.78-.02 4.75-.74 6.36-2.36 2.13-2.13 2.07-4.79.92-6.51-.65-.97-1.59-1.79-2.46-1.85zm-4.7 4.78c-1.2.07-2.45-.47-2.51-1.61-.04-.85.6-1.79 2.59-1.91.23-.01.45-.02.67-.02.72 0 1.4.07 2.01.21-.23 2.84-1.55 3.26-2.76 3.33z"
+          />
+        </svg>
+        Threads
+      </a>
+    </div>
+
+    <script src="rate.js"></script>
+  </body>
+</html>
