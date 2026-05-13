@@ -270,7 +270,47 @@ function renderCard() {
 
   updateStats();
   updateProgress();
+  // Авто-підгонка шрифту після того, як браузер порахує реальні розміри
+  requestAnimationFrame(fitAllCellTexts);
 }
+
+// Зменшує шрифт тексту в кожній клітинці, доки текст не вліземе без overflow
+function fitAllCellTexts() {
+  const cells = document.querySelectorAll(".bingo-cell");
+  cells.forEach((cell) => {
+    const textEl = cell.querySelector(".cell-text");
+    if (!textEl) return;
+    // Скидаємо до базового, щоб повторні виклики не накопичували зменшення
+    textEl.style.fontSize = "";
+    const emojiEl = cell.querySelector(".cell-emoji");
+    const emojiH = emojiEl ? emojiEl.offsetHeight : 0;
+    // Доступна висота для тексту: висота клітинки − висота емоджі − padding/gap
+    const styles = getComputedStyle(cell);
+    const padV =
+      parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+    const gap = parseFloat(styles.rowGap || styles.gap || 0) || 0;
+    const available = cell.clientHeight - emojiH - padV - gap;
+    const maxW = cell.clientWidth - padV;
+    if (available <= 0) return;
+
+    let size = parseFloat(getComputedStyle(textEl).fontSize) || 10;
+    const min = 7;
+    // Швидкий цикл зменшення з кроком 0.5px
+    for (let i = 0; i < 20; i++) {
+      textEl.style.fontSize = size + "px";
+      const fits =
+        textEl.scrollHeight <= available && textEl.scrollWidth <= maxW;
+      if (fits || size <= min) break;
+      size -= 0.5;
+    }
+  });
+}
+
+// Перевикликаємо при resize / зміні орієнтації
+window.addEventListener("resize", () => {
+  clearTimeout(window.__fitTimer);
+  window.__fitTimer = setTimeout(fitAllCellTexts, 120);
+});
 
 function updateStats() {
   const checked = state.checked.filter((i) => i !== FREE_CELL).length;
