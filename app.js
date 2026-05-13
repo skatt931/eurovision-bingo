@@ -623,6 +623,48 @@ function showRules() {
   );
 }
 
+// ============================================================
+//  ROTATE HINT
+// ============================================================
+function dismissRotateHint() {
+  const el = document.getElementById("rotateHint");
+  if (el) el.classList.add("dismissed");
+  try {
+    localStorage.setItem("escRotateHintDone", "1");
+  } catch (e) {}
+}
+
+function initRotateHint() {
+  const el = document.getElementById("rotateHint");
+  if (!el) return;
+  try {
+    if (localStorage.getItem("escRotateHintDone") === "1") {
+      el.classList.add("dismissed");
+      return;
+    }
+  } catch (e) {}
+
+  // Показуємо тільки в portrait і на не-дуже-широких екранах (телефон/планшет)
+  const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+  const isNarrow = window.innerWidth < 900;
+  if (!isPortrait || !isNarrow) return;
+
+  // М'яка поява через 1.2с після завантаження
+  setTimeout(() => el.classList.add("visible"), 1200);
+
+  // Якщо користувач реально перевернув телефон — ховаємо назавжди
+  window
+    .matchMedia("(orientation: landscape)")
+    .addEventListener("change", (ev) => {
+      if (ev.matches) dismissRotateHint();
+    });
+
+  // Авто-сховати через 12с навіть якщо не клікнули
+  setTimeout(() => {
+    el.classList.remove("visible");
+  }, 12000);
+}
+
 function easterEggClick() {
   window.open(
     "https://youtu.be/d4N82wPpdg8?si=KmaxksCmiYVGtrgL&t=69",
@@ -687,6 +729,8 @@ function init() {
       "👤 " + (state.playerName || "Гравець");
     saveState();
   });
+
+  initRotateHint();
 }
 
 init();

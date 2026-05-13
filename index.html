@@ -28,6 +28,18 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- ROTATE HINT (subtle, top-left, portrait only) -->
+    <div
+      class="rotate-hint"
+      id="rotateHint"
+      title="Поверни телефон — клітинки стануть більшими"
+      onclick="dismissRotateHint()"
+    >
+      <span class="rotate-hint-phone">📱</span>
+      <span class="rotate-hint-arrow">↻</span>
+      <span class="rotate-hint-text">більше місця</span>
+    </div>
+
     <!-- MONOBANK BANNER -->
     <div class="mono-banner">
       <a
@@ -124,7 +136,7 @@
 
     <!-- EASTER EGG -->
     <div class="easter-egg" id="easterEgg" onclick="easterEggClick()" title="">
-      🌸
+      🙏
     </div>
 
     <!-- SOCIAL FOOTER -->

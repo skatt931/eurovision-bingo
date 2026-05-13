@@ -535,3 +535,74 @@ body::after {
   transition: all 0.2s;
 }
 .rules-btn:hover { color: var(--text); border-color: var(--accent2); }
+
+/* ROTATE HINT */
+.rotate-hint {
+  position: fixed;
+  top: 40px;
+  left: 8px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px 5px 7px;
+  background: rgba(26, 5, 51, 0.7);
+  border: 1px solid #ffffff22;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  backdrop-filter: blur(6px);
+  animation: rotateHintNudge 5s ease-in-out 2s infinite;
+}
+.rotate-hint.visible {
+  opacity: 0.55;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.rotate-hint:hover { opacity: 1; border-color: var(--accent2); color: var(--text); }
+.rotate-hint-phone {
+  font-size: 14px;
+  display: inline-block;
+  transform-origin: center;
+  animation: rotatePhone 5s ease-in-out 2s infinite;
+}
+.rotate-hint-arrow {
+  font-size: 12px;
+  color: var(--accent2);
+  display: inline-block;
+  animation: rotateArrow 5s ease-in-out 2s infinite;
+}
+.rotate-hint-text { font-size: 10px; opacity: 0.85; }
+
+@keyframes rotateHintNudge {
+  0%, 12%, 100% { transform: translateY(0); }
+  6% { transform: translateY(-2px); }
+}
+@keyframes rotatePhone {
+  0%, 50%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(-15deg); }
+  20% { transform: rotate(-90deg); }
+  30% { transform: rotate(-90deg); }
+  40% { transform: rotate(0deg); }
+}
+@keyframes rotateArrow {
+  0%, 50%, 100% { opacity: 0.4; }
+  20% { opacity: 1; }
+}
+.rotate-hint.dismissed { display: none !important; }
+
+@media (orientation: landscape) {
+  .rotate-hint { display: none; }
+
+  /* Landscape: розширюємо область картки, щоб плитки стали більшими */
+  .wrap { max-width: 760px; padding-bottom: 80px; }
+  .bingo-cell { font-size: 11px; padding: 6px; }
+  .cell-emoji { font-size: 18px; }
+}
