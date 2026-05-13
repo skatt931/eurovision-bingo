@@ -618,9 +618,18 @@ function closeInstall() {
 }
 
 function showRules() {
-  alert(
-    "🎤 Як грати в Eurovision Bingo:\n\n1. Вибери набір карток\n2. Введи своє ім'я\n3. Дивись трансляцію і відмічай клітинки, коли бачиш відповідні події\n4. Зберіть 5 відміток в ряд, стовпці або діагоналі\n5. BINGO! 🎉",
-  );
+  const o = document.getElementById("rulesOverlay");
+  if (o) {
+    o.classList.add("show");
+    o.scrollTop = 0;
+  }
+}
+
+function hideRules(e) {
+  // якщо клік був по фоновому overlay або по кнопках/закриттю
+  if (e?.target?.id && e.target.id !== "rulesOverlay") return;
+  const o = document.getElementById("rulesOverlay");
+  if (o) o.classList.remove("show");
 }
 
 // ============================================================

@@ -193,6 +193,98 @@
     <!-- BINGO shout -->
     <div class="bingo-shout" id="bingoShout">BINGO!</div>
 
+    <!-- RULES MODAL -->
+    <div class="rules-overlay" id="rulesOverlay" onclick="hideRules(event)">
+      <div class="rules-box" onclick="event.stopPropagation()">
+        <button class="rules-close" onclick="hideRules()" aria-label="Закрити">
+          ✕
+        </button>
+        <div class="rules-title">📖 Правила і поради</div>
+
+        <div class="rules-section">
+          <div class="rules-h">🎯 Мета гри</div>
+          <p>
+            Зібрати <b>лінію з 5 клітинок</b> — у ряд, стовпець або по
+            діагоналі. Центральна клітинка ⭐ FREE завжди відмічена, тож вона
+            «допомагає» хрестам через центр.
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">✅ Як грати</div>
+          <p>
+            Увімкни трансляцію Євробачення і <b>тапай по клітинках</b>, коли
+            бачиш описану подію. Тап ще раз — знімає відмітку, якщо помилився.
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">📦 Набори карток</div>
+          <p>
+            Угорі ти можеш вибрати тематику: <b>🎤 Класика</b>,
+            <b>😱 Драма</b>, <b>👗 Мода</b> або <b>🤡 Дивацтва</b>. У кожному
+            наборі — 24 події. При зміні набору картка перемішується заново.
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">🔀 Перемішати картку</div>
+          <p>
+            Кнопка <b>🔀</b> поряд із полем імені створює нову випадкову
+            розкладку з того ж набору. Зручно, якщо хочеш зіграти ще раз або
+            картка «не та».
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">📱 Поверни телефон</div>
+          <p>
+            У горизонтальній орієнтації <b>клітинки стають помітно більшими</b>
+            — легше тапати під час швидкого фіналу. Підказка ↻ у верхньому
+            лівому куті нагадує про це.
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">💾 Збереження</div>
+          <p>
+            Прогрес, ім'я та обраний набір <b>зберігаються автоматично</b> у
+            браузері. Можна закрити вкладку — повернешся в ту саму гру.
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">📤 Поділитися перемогою</div>
+          <p>
+            Коли зіграєш BINGO — натисни «📤 Поділитися». Згенерується
+            <b>картинка твоєї картки 1080×1080</b> з усіма відмітками + текст
+            для соцмереж.
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">📲 Встановити як додаток</div>
+          <p>
+            На iPhone: <b>Safari → «Поділитися» → «На екран Домів»</b>. На
+            Android: <b>меню браузера → «Встановити»</b>. Гра буде як звичайний
+            застосунок.
+          </p>
+        </div>
+
+        <div class="rules-section">
+          <div class="rules-h">💛 Підтримка ЗСУ</div>
+          <p>
+            Жовтий банер угорі — посилання на збір. Тицяй, якщо маєш змогу
+            долучитися.
+          </p>
+        </div>
+
+        <button class="btn btn-primary rules-ok" onclick="hideRules()">
+          Грати! 🎤
+        </button>
+      </div>
+    </div>
+
     <script src="app.js"></script>
   </body>
 </html>
