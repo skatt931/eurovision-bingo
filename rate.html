@@ -13,7 +13,10 @@
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="Eurovision Bingo" />
-    <meta name="description" content="Оцінюй виступи на фіналі Євробачення 2026" />
+    <meta
+      name="description"
+      content="Оцінюй виступи на фіналі Євробачення 2026"
+    />
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
@@ -63,7 +66,6 @@
     <div class="wrap rate-wrap">
       <!-- HEADER -->
       <div class="header">
-        <div class="esc-logo">Eurovision Song Contest</div>
         <div class="title">ОЦІНКА</div>
         <div class="subtitle">Фінал • 17 травня • Базель</div>
       </div>
@@ -80,21 +82,12 @@
         </a>
       </div>
 
-      <!-- ACTIONS -->
-      <div class="nav-row">
+      <!-- ACTIONS — з'являється коли є оцінки -->
+      <div class="nav-row" id="rateActions" hidden>
         <button class="rules-btn" onclick="exportRatings()">📤 Експорт</button>
         <button class="rules-btn" onclick="resetAllRatings()">
           🗑 Скинути всі
         </button>
-      </div>
-
-      <!-- LEGEND -->
-      <div class="rate-legend">
-        <div><b>🎤 Вокал</b> 1-10</div>
-        <div><b>💅 Образ</b> 1-10</div>
-        <div><b>🎭 Номер</b> 1-10</div>
-        <div><b>🆕 Новизна</b> 1-10</div>
-        <div><b>😎 Прогноз</b> 1-15</div>
       </div>
 
       <!-- TABLE -->
@@ -104,11 +97,31 @@
             <tr>
               <th class="col-num">№</th>
               <th class="col-country">Країна/Пісня</th>
-              <th class="col-score">🎤<br />Вокал</th>
-              <th class="col-score">💅<br />Образ</th>
-              <th class="col-score">🎭<br />Номер</th>
-              <th class="col-score">🆕<br />Новизна</th>
-              <th class="col-score">😎<br />Прогноз</th>
+              <th class="col-score">
+                <span class="th-emoji">🎤</span>
+                <span class="th-label">Вокал</span>
+                <span class="th-range">1-10</span>
+              </th>
+              <th class="col-score">
+                <span class="th-emoji">💅</span>
+                <span class="th-label">Образ</span>
+                <span class="th-range">1-10</span>
+              </th>
+              <th class="col-score">
+                <span class="th-emoji">🎭</span>
+                <span class="th-label">Номер</span>
+                <span class="th-range">1-10</span>
+              </th>
+              <th class="col-score">
+                <span class="th-emoji">🆕</span>
+                <span class="th-label">Новизна</span>
+                <span class="th-range">1-10</span>
+              </th>
+              <th class="col-score">
+                <span class="th-emoji">😎</span>
+                <span class="th-label">Прогноз</span>
+                <span class="th-range">1-25</span>
+              </th>
               <th class="col-avg">Сер.</th>
             </tr>
           </thead>
@@ -116,12 +129,10 @@
         </table>
       </div>
 
-      <!-- LEADERBOARD -->
-      <div class="section-label">🏆 Твій рейтинг</div>
-      <div class="leaderboard" id="leaderboard">
-        <div class="leaderboard-empty">
-          Оціни виступи — побачиш рейтинг
-        </div>
+      <!-- LEADERBOARD — з'являється коли є оцінки -->
+      <div class="leaderboard-wrap" id="leaderboardWrap" hidden>
+        <div class="section-label">🏆 Твій рейтинг</div>
+        <div class="leaderboard" id="leaderboard"></div>
       </div>
     </div>
 

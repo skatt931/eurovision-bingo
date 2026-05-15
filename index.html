@@ -96,7 +96,6 @@
       </div>
 
       <!-- PACK SELECTOR -->
-      <div class="section-label">Набір карток</div>
       <div class="packs-wrap">
         <div class="packs" id="packSelector"></div>
       </div>
@@ -107,28 +106,6 @@
           <span class="custom-edit-icon">✏️</span>
           <span class="custom-edit-text">Редагувати свої події</span>
         </button>
-      </div>
-
-      <!-- GAME SETTINGS -->
-      <div class="section-label">⚙️ Налаштування гри</div>
-      <div
-        class="settings-card"
-        onclick="toggleHardMode()"
-        role="button"
-        tabindex="0"
-      >
-        <div class="settings-icon">💀</div>
-        <div class="settings-info">
-          <div class="settings-title">Хард режим</div>
-          <div class="settings-desc">
-            Без FREE у центрі — збирай 5 у ряд по-чесному
-          </div>
-        </div>
-        <div
-          class="toggle-switch"
-          id="hardToggle"
-          aria-label="Хард режим"
-        ></div>
       </div>
 
       <!-- PLAYER -->
@@ -155,11 +132,14 @@
         >
           📲
         </button>
+        <button class="rules-btn" onclick="showSettings()" title="Налаштування">
+          ⚙️
+        </button>
         <button class="rules-btn" onclick="showRules()">📖 Правила</button>
       </div>
 
-      <!-- STATS -->
-      <div class="stats-row">
+      <!-- STATS — з'являється після першої позначеної клітинки -->
+      <div class="stats-row" id="statsRow" hidden>
         <div class="stat-box">
           <div class="stat-num" id="statChecked">0</div>
           <div class="stat-lbl">відмічено</div>
@@ -169,7 +149,7 @@
           <div class="stat-lbl">лінії</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num" id="statLeft">25</div>
+          <div class="stat-num" id="statLeft">24</div>
           <div class="stat-lbl">залишилось</div>
         </div>
       </div>
@@ -258,6 +238,48 @@
 
     <!-- BINGO shout -->
     <div class="bingo-shout" id="bingoShout">BINGO!</div>
+
+    <!-- SETTINGS MODAL -->
+    <div
+      class="rules-overlay"
+      id="settingsOverlay"
+      onclick="hideSettings(event)"
+    >
+      <div class="rules-box" onclick="event.stopPropagation()">
+        <button
+          class="rules-close"
+          onclick="hideSettings()"
+          aria-label="Закрити"
+        >
+          ✕
+        </button>
+        <div class="rules-title">⚙️ Налаштування</div>
+
+        <div
+          class="settings-card"
+          onclick="toggleHardMode()"
+          role="button"
+          tabindex="0"
+        >
+          <div class="settings-icon">💀</div>
+          <div class="settings-info">
+            <div class="settings-title">Хард режим</div>
+            <div class="settings-desc">
+              Без FREE у центрі — збирай 5 у ряд по-чесному
+            </div>
+          </div>
+          <div
+            class="toggle-switch"
+            id="hardToggle"
+            aria-label="Хард режим"
+          ></div>
+        </div>
+
+        <button class="btn btn-primary rules-ok" onclick="hideSettings()">
+          Готово 👍
+        </button>
+      </div>
+    </div>
 
     <!-- COOKIE CONSENT BANNER -->
     <div

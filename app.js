@@ -444,11 +444,18 @@ function updateStats() {
   document.getElementById("statLeft").textContent = total - checked;
   const name = state.playerName || "Гравець";
   document.getElementById("playerTag").textContent = "👤 " + name;
+  // Ховаємо stats-row поки нема жодної відміченої клітинки — менше шуму на старті
+  const statsRow = document.getElementById("statsRow");
+  if (statsRow) statsRow.hidden = checked === 0;
 }
 
 function updateProgress() {
-  const checked = state.checked.length;
-  const pct = Math.round((checked / 25) * 100);
+  // У normal-моді FREE — це "безкоштовно", тож рахуємо тільки реальні відмітки
+  const checked = hasFree()
+    ? state.checked.filter((i) => i !== FREE_CELL).length
+    : state.checked.length;
+  const total = state.hardMode ? 25 : 24;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
   document.getElementById("progressBar").style.width = pct + "%";
   document.getElementById("progressTxt").textContent = pct + "%";
 }
@@ -837,6 +844,17 @@ function hideRules(e) {
   // якщо клік був по фоновому overlay або по кнопках/закриттю
   if (e?.target?.id && e.target.id !== "rulesOverlay") return;
   const o = document.getElementById("rulesOverlay");
+  if (o) o.classList.remove("show");
+}
+
+function showSettings() {
+  const o = document.getElementById("settingsOverlay");
+  if (o) o.classList.add("show");
+}
+
+function hideSettings(e) {
+  if (e?.target?.id && e.target.id !== "settingsOverlay") return;
+  const o = document.getElementById("settingsOverlay");
   if (o) o.classList.remove("show");
 }
 

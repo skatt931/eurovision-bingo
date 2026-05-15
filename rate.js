@@ -92,6 +92,7 @@ function setValue(idx, crit, raw) {
   updateCell(idx, crit);
   updateRow(idx);
   renderLeaderboard();
+  updateActionsVisibility();
 }
 
 function updateCell(idx, crit) {
@@ -273,6 +274,7 @@ function renderTable() {
 
 function renderLeaderboard() {
   const board = document.getElementById("leaderboard");
+  const wrap = document.getElementById("leaderboardWrap");
   if (!board) return;
   const scored = PERFORMERS.map((p, i) => ({
     idx: i,
@@ -280,11 +282,13 @@ function renderLeaderboard() {
     avg: calcAverage(i),
   })).filter((x) => x.avg !== null);
 
+  // Ховаємо leaderboard цілком поки немає оцінок (UX-чистота початкового екрану)
   if (!scored.length) {
-    board.innerHTML =
-      '<div class="leaderboard-empty">Оціни виступи — побачиш рейтинг</div>';
+    if (wrap) wrap.hidden = true;
+    board.innerHTML = "";
     return;
   }
+  if (wrap) wrap.hidden = false;
 
   scored.sort((a, b) => b.avg - a.avg);
   const medals = ["🥇", "🥈", "🥉"];
@@ -304,12 +308,21 @@ function renderLeaderboard() {
     .join("");
 }
 
+// Показує / ховає actions-row (Експорт + Скинути) залежно від наявності оцінок
+function updateActionsVisibility() {
+  const el = document.getElementById("rateActions");
+  if (!el) return;
+  const hasAny = PERFORMERS.some((_, i) => calcAverage(i) !== null);
+  el.hidden = !hasAny;
+}
+
 function resetAllRatings() {
   if (!confirm("Точно скинути всі оцінки? Це не можна повернути.")) return;
   ratings = {};
   saveRatings();
   renderTable();
   renderLeaderboard();
+  updateActionsVisibility();
 }
 
 function exportRatings() {
@@ -351,3 +364,4 @@ function fallbackCopy(text) {
 loadRatings();
 renderTable();
 renderLeaderboard();
+updateActionsVisibility();
