@@ -360,8 +360,32 @@ function fallbackCopy(text) {
   }
 }
 
+// Tracks horizontal scroll: ховає fade+стрілку коли скрол досяг кінця або
+// коли таблиця взагалі вміщається без overflow (десктоп / широкий планшет).
+function setupScrollHint() {
+  const wrap = document.getElementById("rateTableWrap");
+  const outer = document.getElementById("rateTableOuter");
+  if (!wrap || !outer) return;
+
+  function update() {
+    const overflows = wrap.scrollWidth > wrap.clientWidth + 2;
+    outer.classList.toggle("no-overflow", !overflows);
+    if (overflows) {
+      const atEnd =
+        wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 4;
+      outer.classList.toggle("scrolled-end", atEnd);
+    }
+  }
+
+  wrap.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update);
+  // Подвійний rAF — щоб layout встиг порахувати реальні розміри після рендеру
+  requestAnimationFrame(() => requestAnimationFrame(update));
+}
+
 // Init
 loadRatings();
 renderTable();
 renderLeaderboard();
 updateActionsVisibility();
+setupScrollHint();

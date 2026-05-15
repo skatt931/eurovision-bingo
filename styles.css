@@ -21,6 +21,9 @@
 /* HTML5 hidden-атрибут має перемагати над .class { display: flex/grid/... } */
 [hidden] { display: none !important; }
 
+/* Гарантуємо що сторінка ніколи не отримає горизонтальний скрол */
+html { overflow-x: hidden; }
+
 body {
   font-family: 'Nunito', sans-serif;
   background: var(--bg);
@@ -61,7 +64,7 @@ body::after {
   z-index: 0;
 }
 
-.wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 12px 100px; }
+.wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 12px 100px; overflow-x: hidden; }
 
 /* MONOBANK BANNER */
 .mono-banner {
@@ -197,6 +200,7 @@ body::after {
 }
 .name-input {
   flex: 1;
+  min-width: 0; /* критично! без цього flex-input не стискається менше за placeholder і виштовхує кнопки за межі екрану */
   background: var(--surface);
   border: 2px solid #ffffff22;
   border-radius: 10px;
@@ -1186,6 +1190,58 @@ body:has(.rules-overlay.show) .gift-egg { display: none !important; }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Outer обгортка для fade-gradient та стрілки-підказки скролу */
+.rate-table-outer {
+  position: relative;
+  margin-bottom: 16px;
+}
+/* Fade-gradient на правому краю — натякає, що далі ще є контент */
+.rate-table-outer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 56px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(13, 1, 32, 0.5) 40%,
+    var(--bg) 100%
+  );
+  border-radius: 0 14px 14px 0;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+/* Пульсуюча стрілка справа — явна підказка */
+.rate-table-outer::before {
+  content: '→';
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translate(0, -50%);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent3);
+  text-shadow: 0 0 10px #ffe600cc, 0 0 18px #ff2d7866;
+  pointer-events: none;
+  z-index: 3;
+  animation: scrollHintArrow 1.4s ease-in-out infinite;
+}
+@keyframes scrollHintArrow {
+  0%, 100% { transform: translate(0, -50%); opacity: 0.55; }
+  50% { transform: translate(6px, -50%); opacity: 1; }
+}
+/* Сховати fade + стрілку коли скрол досяг кінця або немає overflow взагалі */
+.rate-table-outer.scrolled-end::after,
+.rate-table-outer.scrolled-end::before,
+.rate-table-outer.no-overflow::after,
+.rate-table-outer.no-overflow::before {
+  opacity: 0;
+}
+
 .rate-table-wrap {
   background: linear-gradient(135deg, var(--surface), var(--surface2));
   border: 1.5px solid #ffffff15;
@@ -1193,7 +1249,7 @@ body:has(.rules-overlay.show) .gift-egg { display: none !important; }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding: 4px;
-  margin-bottom: 16px;
+  margin-bottom: 0; /* margin переїхав на outer */
 }
 
 .rate-table {
