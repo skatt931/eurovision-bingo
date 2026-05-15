@@ -817,10 +817,12 @@ async function shareResult() {
 }
 
 function closeInstall() {
-  document.getElementById("installBanner").classList.add("hidden");
+  document.getElementById("installBanner")?.classList.add("hidden");
   try {
     localStorage.setItem("escHideInstall", "1");
-  } catch (e) {}
+  } catch (e) {
+    /* ignore */
+  }
 }
 
 function showRules() {
@@ -1161,10 +1163,7 @@ function renderCustomList() {
 function bytesToB64Url(bytes) {
   let bin = "";
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  return btoa(bin)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 function b64UrlToBytes(b64) {
   let fixed = b64.replace(/-/g, "+").replace(/_/g, "/");
@@ -1420,9 +1419,9 @@ function init() {
   renderPacks();
   renderCard();
 
-  // Hide install banner if dismissed
+  // Hide install banner if dismissed (банер може бути взагалі прибраний з HTML)
   if (localStorage.getItem("escHideInstall") === "1") {
-    document.getElementById("installBanner").classList.add("hidden");
+    document.getElementById("installBanner")?.classList.add("hidden");
   }
 
   // Player name
