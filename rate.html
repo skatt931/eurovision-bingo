@@ -143,6 +143,31 @@
       </a>
     </div>
 
+    <!-- WHEEL PICKER -->
+    <div
+      class="picker-overlay"
+      id="pickerOverlay"
+      onclick="onPickerBackdrop(event)"
+    >
+      <div class="picker-sheet" onclick="event.stopPropagation()">
+        <div class="picker-handle"></div>
+        <div class="picker-title" id="pickerTitle">—</div>
+        <div class="picker-subtitle" id="pickerSubtitle">—</div>
+        <div class="picker-wheel-wrap">
+          <div class="picker-wheel" id="pickerWheel"></div>
+          <div class="picker-selection-indicator"></div>
+        </div>
+        <div class="picker-actions">
+          <button class="btn btn-secondary" onclick="clearPicker()">
+            Скинути
+          </button>
+          <button class="btn btn-primary" onclick="commitPicker()">
+            Готово ✓
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="rate.js"></script>
   </body>
 </html>

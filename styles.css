@@ -1248,35 +1248,33 @@ body:has(.rules-overlay.show) .gift-egg { display: none !important; }
   max-width: 160px;
 }
 
-.rate-table .score input {
+/* Комірки-кнопки відкривають wheel-picker */
+.rate-table .score-btn {
   width: 42px;
   background: var(--surface);
   border: 1.5px solid #ffffff22;
   border-radius: 8px;
   padding: 6px 2px;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-dim);
   outline: none;
   text-align: center;
-  -moz-appearance: textfield;
-  appearance: textfield;
+  cursor: pointer;
   transition: all 0.15s;
+  letter-spacing: 1px;
 }
-.rate-table .score input::-webkit-outer-spin-button,
-.rate-table .score input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.rate-table .score input:focus {
+.rate-table .score-btn:hover {
   border-color: var(--accent2);
   background: var(--surface2);
-  box-shadow: 0 0 8px #00e5ff44;
+  color: var(--text);
 }
-.rate-table .score input:not(:placeholder-shown) {
+.rate-table .score-btn:active { transform: scale(0.94); }
+.rate-table .score-btn.filled {
   border-color: var(--accent1);
   color: var(--accent3);
+  background: rgba(255, 230, 0, 0.04);
 }
 
 .rate-table .avg-cell {
@@ -1427,4 +1425,141 @@ a.rules-btn {
 }
 .page-tab-label {
   text-transform: uppercase;
+}
+
+/* ============================================================
+   WHEEL PICKER — iOS-style bottom sheet
+   ============================================================ */
+.picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.picker-overlay.show { display: flex; }
+
+.picker-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(180deg, var(--surface), var(--surface2));
+  border-top: 1.5px solid var(--accent2);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 20px 24px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6), 0 -2px 24px #00e5ff22;
+  animation: pickerSlideUp 0.32s cubic-bezier(.34, 1.56, .64, 1);
+}
+@keyframes pickerSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.picker-handle {
+  width: 40px;
+  height: 4px;
+  background: #ffffff44;
+  border-radius: 2px;
+  margin: 0 auto 10px;
+}
+
+.picker-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+.picker-subtitle {
+  font-size: 13px;
+  color: var(--accent3);
+  text-align: center;
+  margin-bottom: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.picker-wheel-wrap {
+  position: relative;
+  height: 240px;
+  margin: 0 -8px; /* трохи розширюємо для естетики */
+}
+
+.picker-wheel {
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* fade-out зверху і знизу — додає об'ємності */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 25%,
+    #000 75%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 25%,
+    #000 75%,
+    transparent 100%
+  );
+}
+.picker-wheel::-webkit-scrollbar { display: none; }
+
+.wheel-spacer {
+  height: 96px; /* (240 − 48) / 2 — щоб перший/останній пункт міг бути по центру */
+  pointer-events: none;
+}
+
+.wheel-item {
+  height: 48px;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: color 0.15s, font-size 0.15s, text-shadow 0.15s;
+  user-select: none;
+}
+.wheel-item.selected {
+  color: var(--accent3);
+  font-size: 44px;
+  text-shadow: 0 0 14px #ffe60088, 0 0 28px #ff2d7844;
+}
+
+.picker-selection-indicator {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 48px;
+  border-top: 1.5px solid var(--accent3);
+  border-bottom: 1.5px solid var(--accent3);
+  pointer-events: none;
+  opacity: 0.35;
+  border-radius: 2px;
+}
+
+.picker-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.picker-actions .btn {
+  flex: 1;
+  justify-content: center;
+  margin-top: 0;
 }

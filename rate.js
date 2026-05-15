@@ -34,12 +34,14 @@ const PERFORMERS = [
 
 const STORAGE_KEY = "escBingoRatings2026";
 const CRITERIA = [
-  { id: "vokal", max: 10, emoji: "🎤" },
-  { id: "obraz", max: 10, emoji: "💅" },
-  { id: "nomer", max: 10, emoji: "🎭" },
-  { id: "novyzna", max: 10, emoji: "🆕" },
-  { id: "prognoz", max: 25, emoji: "😎" },
+  { id: "vokal", max: 10, emoji: "🎤", label: "Вокал" },
+  { id: "obraz", max: 10, emoji: "💅", label: "Образ" },
+  { id: "nomer", max: 10, emoji: "🎭", label: "Номер" },
+  { id: "novyzna", max: 10, emoji: "🆕", label: "Новизна" },
+  { id: "prognoz", max: 25, emoji: "😎", label: "Прогноз" },
 ];
+
+const WHEEL_ITEM_HEIGHT = 48; // px — має збігатись з CSS
 
 let ratings = {};
 
@@ -73,7 +75,7 @@ function getValue(idx, crit) {
   return ratings[performerKey(idx)]?.[crit];
 }
 
-function setValue(idx, crit, raw, inputEl) {
+function setValue(idx, crit, raw) {
   const key = performerKey(idx);
   if (!ratings[key]) ratings[key] = {};
   if (raw === "" || raw === null || raw === undefined) {
@@ -85,12 +87,113 @@ function setValue(idx, crit, raw, inputEl) {
     const max = meta?.max || 10;
     const clamped = Math.max(0, Math.min(max, n));
     ratings[key][crit] = clamped;
-    // Якщо користувач увів більше за max — перезаписуємо input актуальним значенням
-    if (inputEl && clamped !== n) inputEl.value = String(clamped);
   }
   saveRatings();
+  updateCell(idx, crit);
   updateRow(idx);
   renderLeaderboard();
+}
+
+function updateCell(idx, crit) {
+  const btn = document.querySelector(
+    `#rateBody tr[data-idx="${idx}"] button.score-btn[data-crit="${crit}"]`,
+  );
+  if (!btn) return;
+  const v = getValue(idx, crit);
+  btn.textContent = Number.isFinite(v) ? String(v) : "—";
+  btn.classList.toggle("filled", Number.isFinite(v));
+}
+
+// ============================================================
+//  WHEEL PICKER — iOS-style bottom sheet
+// ============================================================
+let pickerState = null;
+let _pickerScrollTimer = null;
+
+function openPicker(idx, crit) {
+  const performer = PERFORMERS[idx];
+  const meta = CRITERIA.find((c) => c.id === crit);
+  if (!performer || !meta) return;
+
+  pickerState = { idx, crit, max: meta.max };
+
+  const wheel = document.getElementById("pickerWheel");
+  const parts = ['<div class="wheel-spacer"></div>'];
+  for (let v = 1; v <= meta.max; v++) {
+    parts.push(`<div class="wheel-item" data-value="${v}">${v}</div>`);
+  }
+  parts.push('<div class="wheel-spacer"></div>');
+  wheel.innerHTML = parts.join("");
+
+  // Тап по конкретному пункту → скрол до нього
+  wheel.querySelectorAll(".wheel-item").forEach((item, i) => {
+    item.addEventListener("click", () => {
+      wheel.scrollTo({ top: i * WHEEL_ITEM_HEIGHT, behavior: "smooth" });
+    });
+  });
+
+  document.getElementById("pickerTitle").textContent = performer.country;
+  document.getElementById("pickerSubtitle").textContent =
+    `${meta.emoji} ${meta.label}`;
+
+  const overlay = document.getElementById("pickerOverlay");
+  overlay.classList.add("show");
+
+  // Початкова позиція: поточне значення або середина шкали
+  const current = getValue(idx, crit);
+  const startIdx = Number.isFinite(current)
+    ? Math.max(0, current - 1)
+    : Math.floor(meta.max / 2);
+
+  // requestAnimationFrame щоб layout встиг порахувати розміри
+  requestAnimationFrame(() => {
+    wheel.scrollTop = startIdx * WHEEL_ITEM_HEIGHT;
+    highlightWheelItem();
+  });
+
+  wheel.addEventListener("scroll", onWheelScroll);
+}
+
+function onWheelScroll() {
+  // Throttle через rAF, оновлюємо підсвічування на льоту
+  if (_pickerScrollTimer) cancelAnimationFrame(_pickerScrollTimer);
+  _pickerScrollTimer = requestAnimationFrame(highlightWheelItem);
+}
+
+function highlightWheelItem() {
+  const wheel = document.getElementById("pickerWheel");
+  if (!wheel) return;
+  const idx = Math.round(wheel.scrollTop / WHEEL_ITEM_HEIGHT);
+  wheel.querySelectorAll(".wheel-item").forEach((el, i) => {
+    el.classList.toggle("selected", i === idx);
+  });
+}
+
+function commitPicker() {
+  if (!pickerState) return;
+  const wheel = document.getElementById("pickerWheel");
+  const i = Math.round(wheel.scrollTop / WHEEL_ITEM_HEIGHT);
+  const value = i + 1; // елементи починаються з 1
+  setValue(pickerState.idx, pickerState.crit, String(value));
+  closePicker();
+}
+
+function clearPicker() {
+  if (!pickerState) return;
+  setValue(pickerState.idx, pickerState.crit, "");
+  closePicker();
+}
+
+function closePicker() {
+  const overlay = document.getElementById("pickerOverlay");
+  if (overlay) overlay.classList.remove("show");
+  const wheel = document.getElementById("pickerWheel");
+  if (wheel) wheel.removeEventListener("scroll", onWheelScroll);
+  pickerState = null;
+}
+
+function onPickerBackdrop(e) {
+  if (e?.target?.id === "pickerOverlay") commitPicker();
 }
 
 function calcAverage(idx) {
@@ -146,22 +249,16 @@ function renderTable() {
     CRITERIA.forEach((c) => {
       const td = document.createElement("td");
       td.className = "score";
-      const input = document.createElement("input");
-      input.type = "number";
-      input.inputMode = "decimal";
-      input.min = "0";
-      input.max = String(c.max);
-      input.step = "0.5";
-      input.placeholder = "—";
-      input.dataset.idx = String(i);
-      input.dataset.crit = c.id;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "score-btn";
+      btn.dataset.idx = String(i);
+      btn.dataset.crit = c.id;
       const v = getValue(i, c.id);
-      if (Number.isFinite(v)) input.value = String(v);
-      input.addEventListener("input", () =>
-        setValue(i, c.id, input.value, input),
-      );
-      input.addEventListener("focus", () => input.select());
-      td.appendChild(input);
+      btn.textContent = Number.isFinite(v) ? String(v) : "—";
+      if (Number.isFinite(v)) btn.classList.add("filled");
+      btn.addEventListener("click", () => openPicker(i, c.id));
+      td.appendChild(btn);
       tr.appendChild(td);
     });
 
